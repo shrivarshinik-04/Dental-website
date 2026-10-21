@@ -12,6 +12,12 @@ import { postJson } from 'lib/api';
 
 const STATUS_KEY = { GIVEN: 'statusGiven', WITHDRAWN: 'statusWithdrawn', DENIED: 'statusNotGiven', NOT_GIVEN: 'statusNotGiven' };
 
+// Purposes no longer offered have no text in the current notice.
+const purposeTitle = (t, purpose) => {
+  const current = t(`notice.purposes.${purpose}.title`);
+  return current === `notice.purposes.${purpose}.title` ? t(`rights.legacyPurposes.${purpose}`) : current;
+};
+
 const Section = ({ title, children }) => (
   <section className="border rounded p-4 bg-white mb-4">
     <h2 className="fs-20 merriweather text-title mb-3">{title}</h2>
@@ -150,7 +156,7 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
         <ul className="fs-15">
           {summary.processing.map((p) => (
             <li key={p.purpose}>
-              {t(`notice.purposes.${p.purpose}.title`)}: {p.lawfulGround}
+              {purposeTitle(t, p.purpose)}: {p.lawfulGround}
             </li>
           ))}
         </ul>
@@ -169,7 +175,7 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
           {summary.consents.map((c) => (
             <li key={c.purpose} className="d-flex flex-wrap justify-content-between align-items-center border-bottom py-2 gap-2">
               <span>
-                <strong>{t(`notice.purposes.${c.purpose}.title`)}</strong>
+                <strong>{purposeTitle(t, c.purpose)}</strong>
                 <br />
                 <span className="fs-14">
                   {t(`rights.${STATUS_KEY[c.status]}`)}

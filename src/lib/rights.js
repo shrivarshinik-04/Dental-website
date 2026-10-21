@@ -10,7 +10,11 @@ import prisma from './db';
 import { decrypt } from './crypto';
 import { addDays } from './http';
 
-export const USER_PURPOSES = ['APPOINTMENT', 'APPOINTMENT_REMINDERS_SMS_WHATSAPP', 'MARKETING'];
+// Purposes a person can manage in the portal. Only APPOINTMENT is collected now; the
+// legacy reminder/marketing purposes are listed only if a record holds them, so they can
+// still be withdrawn.
+export const USER_PURPOSES = ['APPOINTMENT'];
+const LEGACY_PURPOSES = ['APPOINTMENT_REMINDERS_SMS_WHATSAPP', 'MARKETING'];
 
 /** Rule 9: every response to a rights request names the person who can answer questions. */
 export const withContact = (body) => ({ ...body, contact: CONTACT_PERSON });
@@ -60,8 +64,7 @@ export const buildSummary = (principal) => {
       status: a.status,
       legallyRequired: a.legallyRequired
     })),
-    // Marketing is never offered for a child's booking (s.9(3)).
-    consents: USER_PURPOSES.filter((p) => !(p === 'MARKETING' && hasMinorAppointments(principal))).map(
+    consents: [...USER_PURPOSES, ...LEGACY_PURPOSES.filter((p) => latest[p])].map(
       (purpose) => ({
         purpose,
         status: latest[purpose]?.status || 'NOT_GIVEN',
@@ -99,7 +102,9 @@ export const buildSummary = (principal) => {
       status: g.status,
       dueDate: g.dueDate.toISOString()
     })),
-    processing: Object.entries(PURPOSES).map(([purpose, info]) => ({ purpose, lawfulGround: info.ground })),
+    processing: Object.entries(PURPOSES)
+      .filter(([, info]) => !info.legacy)
+      .map(([purpose, info]) => ({ purpose, lawfulGround: info.ground })),
     processors: PROCESSORS,
     retention: {
       bookingDataDaysAfterVisit: RETENTION.appointmentAfterVisitDays,

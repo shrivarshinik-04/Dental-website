@@ -40,14 +40,6 @@
         "title": "Booking and managing your appointment",
         "description": "We use your details to schedule the appointment, call or message you to confirm or change it, and prepare for the visit. Needed to book."
       },
-      "APPOINTMENT_REMINDERS_SMS_WHATSAPP": {
-        "title": "Appointment reminders by SMS or WhatsApp",
-        "description": "We send a reminder before your visit through our SMS/WhatsApp provider. Optional: you can still book without it."
-      },
-      "MARKETING": {
-        "title": "Offers and clinic news",
-        "description": "Occasional messages about check-up camps, offers and new services. Optional, never sent to patients under 18."
-      },
       "FUNCTIONAL_COOKIES": {
         "title": "Functional cookies",
         "description": "Remember settings such as your language between visits. Optional."
@@ -138,8 +130,6 @@
     "guardianDeclaration": "I declare that I am an adult (18 or over) and the parent or lawful guardian of this patient, and I am giving the consents below on their behalf.",
     "consentHeading": "Your consent",
     "consentAppointment": "I agree to {clinic} processing the personal data listed above to schedule and manage this appointment.",
-    "consentReminders": "Send me appointment reminders by SMS or WhatsApp.",
-    "consentMarketing": "Send me occasional offers and clinic news.",
     "submit": "Request appointment",
     "successTitle": "Appointment requested",
     "successText": "We will call you to confirm your slot.",
@@ -212,7 +202,11 @@
     },
     "noData": "None",
     "demoLabel": "Test environment",
-    "demoText": "Codes are not sent in this test environment (DEMO_MODE). Your one-time code is:"
+    "demoText": "Codes are not sent in this test environment (DEMO_MODE). Your one-time code is:",
+    "legacyPurposes": {
+      "APPOINTMENT_REMINDERS_SMS_WHATSAPP": "Appointment reminders by SMS or WhatsApp (no longer offered)",
+      "MARKETING": "Offers and clinic news (no longer offered)"
+    }
   },
   "grievance": {
     "title": "Raise a grievance",

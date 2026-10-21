@@ -79,13 +79,9 @@ export default withErrors(async (req, res) => {
       }
     });
 
-    // One row per purpose: required + each optional purpose, never bundled (s.6(1)).
-    const purposes = [
-      ['APPOINTMENT', true],
-      ['APPOINTMENT_REMINDERS_SMS_WHATSAPP', data.consents.APPOINTMENT_REMINDERS_SMS_WHATSAPP],
-      // Marketing is not offered for children, so nothing is recorded for it (s.9(3)).
-      ...(isMinor ? [] : [['MARKETING', data.consents.MARKETING]])
-    ];
+    // Only the appointment purpose is offered. Reminder and marketing consents were removed
+    // because no reminder or marketing process exists (REQUIREMENTS §5: no decorative consent).
+    const purposes = [['APPOINTMENT', true]];
     await tx.consentRecord.createMany({
       data: purposes.map(([purpose, given]) => ({
         dataPrincipalId: principal.id,

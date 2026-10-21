@@ -30,9 +30,7 @@ const EMPTY = {
   guardianName: '',
   guardianRelationship: '',
   guardianDeclaration: false,
-  consentAppointment: false,
-  consentReminders: false,
-  consentMarketing: false
+  consentAppointment: false
 };
 
 const localToday = () => {
@@ -86,8 +84,6 @@ const BookAppointment = () => {
     setForm((prev) => ({
       ...prev,
       isMinor: value,
-      // Marketing is never offered for a child.
-      consentMarketing: value ? false : prev.consentMarketing,
       ...(value ? {} : { guardianName: '', guardianRelationship: '', guardianDeclaration: false })
     }));
 
@@ -113,11 +109,7 @@ const BookAppointment = () => {
         guardianName: form.isMinor ? form.guardianName : '',
         guardianRelationship: form.isMinor ? form.guardianRelationship : null,
         guardianDeclaration: form.isMinor ? form.guardianDeclaration : false,
-        consents: {
-          APPOINTMENT: form.consentAppointment,
-          APPOINTMENT_REMINDERS_SMS_WHATSAPP: form.consentReminders,
-          MARKETING: form.isMinor ? false : form.consentMarketing
-        },
+        consents: { APPOINTMENT: form.consentAppointment },
         language,
         noticeVersion: NOTICE_VERSION
       });
@@ -387,11 +379,7 @@ const BookAppointment = () => {
                   className="my-6"
                   showSwitcher={false}
                   dataKeys={['name', 'phone', 'email', 'slot', 'service', 'reason', 'guardian', 'consentProof']}
-                  purposeKeys={[
-                    'APPOINTMENT',
-                    'APPOINTMENT_REMINDERS_SMS_WHATSAPP',
-                    ...(form.isMinor ? [] : ['MARKETING'])
-                  ]}
+                  purposeKeys={['APPOINTMENT']}
                 />
 
                 <fieldset className="mb-4">
@@ -412,33 +400,6 @@ const BookAppointment = () => {
                     </label>
                     {fieldError('consentAppointment')}
                   </div>
-                  <div className="form-check mb-2">
-                    <input
-                      id="field-consentReminders"
-                      type="checkbox"
-                      className="form-check-input"
-                      checked={form.consentReminders}
-                      onChange={set('consentReminders')}
-                    />
-                    <label className="form-check-label" htmlFor="field-consentReminders">
-                      {t('booking.consentReminders')} ({t('common.optional')})
-                    </label>
-                  </div>
-                  {/* Hidden for children: no marketing to minors (s.9(3)). */}
-                  {!form.isMinor && (
-                    <div className="form-check mb-2">
-                      <input
-                        id="field-consentMarketing"
-                        type="checkbox"
-                        className="form-check-input"
-                        checked={form.consentMarketing}
-                        onChange={set('consentMarketing')}
-                      />
-                      <label className="form-check-label" htmlFor="field-consentMarketing">
-                        {t('booking.consentMarketing')} ({t('common.optional')})
-                      </label>
-                    </div>
-                  )}
                 </fieldset>
 
                 {status.error && (

@@ -132,11 +132,12 @@ const PROCESSORS = [
 // src/locales/*.json changes: visitors are re-prompted and new consents point to
 // the new NoticeVersion row.
 // ---------------------------------------------------------------------------
-const NOTICE_VERSION = '2026-10-20.1';
-const NOTICE_EFFECTIVE_FROM = '2026-10-20';
+const NOTICE_VERSION = '2026-10-21.1';
+const NOTICE_EFFECTIVE_FROM = '2026-10-21';
 
 const POLICY_CHANGELOG = [
-  { version: '2026-10-20.1', date: '2026-10-20', change: 'First version, aligned with the DPDP Act 2023 and DPDP Rules 2025.' }
+  { version: '2026-10-20.1', date: '2026-10-20', change: 'First version.' },
+  { version: '2026-10-21.1', date: '2026-10-21', change: 'Removed optional appointment-reminder and marketing consents: no reminder or marketing process exists.' }
 ];
 
 // s.5(3) / s.6(3): English plus languages from the Eighth Schedule. Add a locale
@@ -191,8 +192,9 @@ const OTP = {
 // Lawful ground for each processing purpose (s.4). Shown on the privacy policy.
 const PURPOSES = {
   APPOINTMENT: { ground: 'Consent (s.6)', required: true },
-  APPOINTMENT_REMINDERS_SMS_WHATSAPP: { ground: 'Consent (s.6)', required: false },
-  MARKETING: { ground: 'Consent (s.6)', required: false },
+  // Legacy purposes, no longer collected; kept so older records still display.
+  APPOINTMENT_REMINDERS_SMS_WHATSAPP: { ground: 'Consent (no longer offered)', required: false, legacy: true },
+  MARKETING: { ground: 'Consent (no longer offered)', required: false, legacy: true },
   FUNCTIONAL_COOKIES: { ground: 'Consent (s.6)', required: false },
   ANALYTICS_COOKIES: { ground: 'Consent (s.6)', required: false }
 };

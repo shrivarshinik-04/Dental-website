@@ -72,11 +72,7 @@ export const appointmentSchema = z
     guardianName: text(100).optional().default(''),
     guardianRelationship: z.enum(RELATIONSHIPS).optional().nullable(),
     guardianDeclaration: z.boolean().optional().default(false),
-    consents: z.object({
-      APPOINTMENT: z.literal(true),
-      APPOINTMENT_REMINDERS_SMS_WHATSAPP: z.boolean().default(false),
-      MARKETING: z.boolean().default(false)
-    }),
+    consents: z.object({ APPOINTMENT: z.literal(true) }).strict(),
     language,
     noticeVersion: z.string().max(40)
   })
@@ -111,6 +107,8 @@ export const correctionSchema = z
 
 export const consentChangeSchema = z
   .object({
+    // Reminder/marketing purposes are no longer offered but may exist on older records,
+    // so they can still be withdrawn (not given).
     purpose: z.enum(['APPOINTMENT', 'APPOINTMENT_REMINDERS_SMS_WHATSAPP', 'MARKETING']),
     action: z.enum(['WITHDRAW', 'GIVE']),
     language

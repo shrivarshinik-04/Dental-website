@@ -38,8 +38,8 @@ export default principalRoute(['POST'], async (req, res, { session, principal, i
     return res.status(400).json(withContact({ error: 'This consent is not currently given.' }));
   if (action === 'GIVE') {
     if (purpose === 'APPOINTMENT') return res.status(400).json(withContact({ error: 'To book again, please use the appointment form.' }));
-    if (purpose === 'MARKETING' && minor) return res.status(400).json(withContact({ error: 'Not available for patients under 18.' }));
-    if (latest?.status === 'GIVEN') return res.status(400).json(withContact({ error: 'This consent is already given.' }));
+    // Reminder and marketing purposes are no longer offered (no such process exists).
+    return res.status(400).json(withContact({ error: 'This option is no longer offered.' }));
   }
 
   let cancelled = 0;
