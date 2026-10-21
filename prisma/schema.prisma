@@ -5,6 +5,8 @@
 //   stored as strings so the schema stays portable.
 // - Fields marked "encrypted" hold AES-256-GCM ciphertext produced by
 //   src/lib/crypto.js (s.8(5), Rule 6(1)(a)). Never write plaintext into them.
+// - Which form writes which table and column: docs/DATA-MODEL.md. Check stored data with
+//   `npm run data:check` (read-only).
 // - ConsentRecord is APPEND-ONLY (s.6(10) burden of proof): never update a row,
 //   every grant/denial/withdrawal inserts a new event.
 
@@ -89,29 +91,31 @@ model NoticeVersion {
 
 // s.6 consent ledger. Append-only.
 model ConsentRecord {
-  id               String          @id @default(cuid())
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-  dataPrincipalId  String?
-  dataPrincipal    DataPrincipal?  @relation(fields: [dataPrincipalId], references: [id])
-  anonymousId      String? // random UUID from the first-party `dpdp_aid` cookie
-  purpose          ConsentPurpose
-  status           ConsentStatus
-  noticeVersionId  String
-  noticeVersion    NoticeVersion   @relation(fields: [noticeVersionId], references: [id])
-  language         String
-  channel          ConsentChannel
-  givenByGuardian  Boolean         @default(false)
+  id              String         @id @default(cuid())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  dataPrincipalId String?
+  dataPrincipal   DataPrincipal? @relation(fields: [dataPrincipalId], references: [id])
+  anonymousId     String? // random UUID from the first-party `dpdp_aid` cookie
+  purpose         ConsentPurpose
+  status          ConsentStatus
+  noticeVersionId String
+  noticeVersion   NoticeVersion  @relation(fields: [noticeVersionId], references: [id])
+  language        String
+  channel         ConsentChannel
+  givenByGuardian Boolean        @default(false)
   // Booking whose guardian gave this consent (guardian details live on the Appointment).
-  appointmentId    String?
-  appointment      Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
-  ipHash           String? // HMAC-SHA-256(IP_HASH_SALT, ip). Raw IP is never stored.
-  userAgent        String?
-  timestamp        DateTime        @default(now())
+  appointmentId   String?
+  appointment     Appointment?   @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+  ipHash          String? // HMAC-SHA-256(IP_HASH_SALT, ip). Raw IP is never stored.
+  userAgent       String?
+  timestamp       DateTime       @default(now())
 
   @@index([dataPrincipalId, purpose, timestamp])
   @@index([anonymousId, purpose, timestamp])
   @@index([timestamp])
+  @@index([appointmentId])
+  @@index([noticeVersionId])
 }
 
 // The person the data is about. `referenceId` (DP-XXXXXX) is the identifier the
@@ -197,30 +201,31 @@ model RightsRequest {
   respondedAt        DateTime?
 
   @@index([status, dueDate])
+  @@index([dataPrincipalId, type])
 }
 
 // s.13 grievance redressal. dueDate <= createdAt + 90 days (Rule 14(3)).
 model Grievance {
-  id                 String         @id @default(cuid())
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  referenceNumber    String         @unique
-  dataPrincipalId    String?
-  dataPrincipal      DataPrincipal? @relation(fields: [dataPrincipalId], references: [id], onDelete: SetNull)
-  verified           Boolean        @default(false)
-  contactName        String? // encrypted, only for complainants without a reference ID
-  contactDetail      String? // encrypted, ditto
-  category           String
-  description        String // encrypted
-  status             RequestStatus  @default(OPEN)
-  dueDate            DateTime
-  resolution         String?
-  resolvedAt         DateTime?
-  escalationNote     String // s.13(3): right to approach the Data Protection Board
+  id              String         @id @default(cuid())
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  referenceNumber String         @unique
+  dataPrincipalId String?
+  dataPrincipal   DataPrincipal? @relation(fields: [dataPrincipalId], references: [id], onDelete: SetNull)
+  verified        Boolean        @default(false)
+  contactName     String? // encrypted, only for complainants without a reference ID
+  contactDetail   String? // encrypted, ditto
+  category        String
+  description     String // encrypted
+  status          RequestStatus  @default(OPEN)
+  dueDate         DateTime
+  resolution      String?
+  resolvedAt      DateTime?
+  escalationNote  String // s.13(3): right to approach the Data Protection Board
 
   @@index([status, dueDate])
+  @@index([dataPrincipalId])
 }
-
 
 // Rule 6(1)(c) / Rule 8(3): who accessed or changed personal data, and when.
 // Holds identifiers only, never the personal data itself.
