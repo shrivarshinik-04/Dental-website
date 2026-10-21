@@ -111,6 +111,7 @@
     "reason": "Reason for visit",
     "reasonHint": "A few words are enough, e.g. \"tooth pain on the left side\". Please do not enter detailed medical history here: we will ask in person.",
     "isMinor": "Is the patient under 18?",
+    "isMinorHint": "If you choose Yes, we will ask for the parent or guardian's details instead of the patient's contact details.",
     "yes": "Yes",
     "no": "No",
     "guardianHeading": "Parent or guardian details",

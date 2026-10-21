@@ -40,6 +40,9 @@ test('section is hidden by default, appears for a minor (announced, focus moved)
   const messages = watchConsole(page);
   await page.goto('/book-appointment', { waitUntil: 'networkidle' });
   for (const id of GUARDIAN_IDS) await expect(page.locator(id)).toHaveCount(0);
+  // Before an answer is chosen, the form says that "Yes" asks for the guardian's details.
+  await expect(page.locator('#hint-isMinor')).toHaveText("If you choose Yes, we will ask for the parent or guardian's details instead of the patient's contact details.");
+  await expect(page.locator('fieldset:has(#field-isMinor)')).toHaveAttribute('aria-describedby', /hint-isMinor/);
   await expect(page.locator('#guardian-live')).toHaveAttribute('aria-live', 'polite');
   await expect(page.locator('#guardian-live')).toHaveText('');
 

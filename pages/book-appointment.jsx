@@ -212,7 +212,7 @@ const BookAppointment = () => {
 
               <form onSubmit={submit} noValidate aria-describedby="consent-notice-title">
                 <div className="row g-3">
-                  <fieldset className="col-12" aria-describedby={described('isMinor')}>
+                  <fieldset className="col-12" aria-describedby={described('isMinor', 'hint-isMinor')}>
                     <legend className="form-label fs-16 mb-1">{t('booking.isMinor')} *</legend>
                     {[true, false].map((value) => (
                       <div className="form-check form-check-inline" key={String(value)}>
@@ -229,6 +229,9 @@ const BookAppointment = () => {
                         </label>
                       </div>
                     ))}
+                    <div id="hint-isMinor" className="form-text">
+                      {t('booking.isMinorHint')}
+                    </div>
                     {fieldError('isMinor')}
                   </fieldset>
 
