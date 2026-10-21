@@ -1,0 +1,235 @@
+{
+  "meta": {
+    "code": "en",
+    "label": "English"
+  },
+  "common": {
+    "language": "Language",
+    "required": "required",
+    "optional": "optional",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "loading": "Please wait…",
+    "error": "Something went wrong. Please try again.",
+    "contactBlockTitle": "Questions about your personal data?",
+    "contactBlockText": "Contact our Grievance Officer / Data Protection Contact:"
+  },
+  "notice": {
+    "title": "Privacy notice",
+    "intro": "{clinic} ({legalName}) decides why and how your personal data is used, and is the \"Data Fiduciary\" under the Digital Personal Data Protection Act, 2023. Please read this notice before you agree. You only need to tick the boxes you agree to.",
+    "dataHeading": "Personal data we collect here",
+    "data": {
+      "name": "Name of the patient",
+      "phone": "Mobile number",
+      "email": "Email address (optional)",
+      "slot": "Preferred date and time slot",
+      "service": "The treatment or service you want to book",
+      "reason": "Short reason for the visit or dental concern (optional)",
+      "guardian": "If the patient is under 18: the parent or guardian's name and relationship",
+      "consentProof": "Proof of your choices: date and time, notice version, language, browser type and a one-way hash of your IP address (never the IP address itself)",
+      "cookieId": "A random ID stored in a cookie on your device",
+      "cookieChoices": "The cookie categories you allow or refuse"
+    },
+    "purposesHeading": "What we use it for",
+    "purposes": {
+      "APPOINTMENT": {
+        "title": "Booking and managing your appointment",
+        "description": "We use your details to schedule the appointment, call or message you to confirm or change it, and prepare for the visit. Needed to book."
+      },
+      "APPOINTMENT_REMINDERS_SMS_WHATSAPP": {
+        "title": "Appointment reminders by SMS or WhatsApp",
+        "description": "We send a reminder before your visit through our SMS/WhatsApp provider. Optional: you can still book without it."
+      },
+      "MARKETING": {
+        "title": "Offers and clinic news",
+        "description": "Occasional messages about check-up camps, offers and new services. Optional, never sent to patients under 18."
+      },
+      "FUNCTIONAL_COOKIES": {
+        "title": "Functional cookies",
+        "description": "Remember settings such as your language between visits. Optional."
+      },
+      "ANALYTICS_COOKIES": {
+        "title": "Analytics cookies",
+        "description": "Count visits and see which pages are used so we can improve the website. Optional, off unless you turn it on."
+      },
+      "MARKETING_COOKIES": {
+        "title": "Marketing cookies",
+        "description": "Measure our advertising and show relevant offers. Optional, off unless you turn it on. We do not use any today."
+      }
+    },
+    "rightsHeading": "Your rights",
+    "withdraw": "You can withdraw your consent at any time, as easily as you gave it: use \"Cookie settings\" at the bottom of any page, or one click per purpose on the Data Rights page with your reference ID. Processing stops from then on; it does not undo processing already done.",
+    "rights": "You can get a summary of your data, correct, complete or update it, ask us to erase it, and nominate someone to act for you, on the Data Rights page.",
+    "grievance": "If you have a complaint, use the Grievance page or contact our Grievance Officer. We reply within {grievanceDays} days.",
+    "board": "If you are not satisfied with our reply, you can complain to the {board}.",
+    "contactHeading": "Who to contact",
+    "links": {
+      "rights": "Data Rights page",
+      "grievance": "Grievance page",
+      "privacy": "Full privacy policy",
+      "cookies": "Cookie policy",
+      "board": "Data Protection Board of India"
+    },
+    "version": "Notice version {version}"
+  },
+  "cookie": {
+    "title": "Your cookie choices",
+    "text": "We use cookies that are strictly necessary to run this site. With your permission, we would also like to use optional cookies. They are all off until you choose. Your choice applies straight away and you can change it any time from \"Cookie settings\" at the bottom of every page.",
+    "acceptAll": "Accept all",
+    "rejectAll": "Reject all",
+    "customise": "Customise",
+    "save": "Save my choices",
+    "alwaysOn": "Always on",
+    "settings": "Cookie settings",
+    "saved": "Your choices have been saved.",
+    "minorNote": "Because you are booking for a patient under 18, analytics and marketing stay off for this visit.",
+    "categories": {
+      "necessary": {
+        "title": "Strictly necessary",
+        "description": "Remember your cookie choices, keep the Data Rights page signed in and protect forms from abuse. The site cannot work without them, so they cannot be switched off."
+      },
+      "functional": {
+        "title": "Functional",
+        "description": "Remember your preferred language between visits."
+      },
+      "analytics": {
+        "title": "Analytics",
+        "description": "Help us understand how the website is used. Not used today; nothing loads unless you allow it."
+      },
+      "marketing": {
+        "title": "Marketing",
+        "description": "Measure advertising and show relevant offers. Not used today; nothing loads unless you allow it."
+      }
+    }
+  },
+  "booking": {
+    "title": "Book an appointment",
+    "intro": "Tell us when you would like to visit and we will call you to confirm.",
+    "name": "Patient's full name",
+    "phone": "Mobile number",
+    "phoneHint": "10-digit Indian mobile number",
+    "email": "Email",
+    "service": "Service",
+    "selectService": "Choose a service",
+    "date": "Preferred date",
+    "slot": "Preferred time",
+    "slots": {
+      "MORNING": "Morning (10am to 2pm)",
+      "EVENING": "Evening (5pm to 8pm)"
+    },
+    "reason": "Reason for visit",
+    "reasonHint": "A few words are enough, e.g. \"tooth pain on the left side\". Please do not enter detailed medical history here: we will ask in person.",
+    "isMinor": "Is the patient under 18?",
+    "yes": "Yes",
+    "no": "No",
+    "guardianHeading": "Parent or guardian",
+    "guardianIntro": "The patient is a child, so a parent or lawful guardian must give consent for them.",
+    "guardianName": "Parent or guardian's full name",
+    "guardianRelationship": "Relationship to the patient",
+    "relationships": {
+      "MOTHER": "Mother",
+      "FATHER": "Father",
+      "LEGAL_GUARDIAN": "Legal guardian"
+    },
+    "guardianDeclaration": "I declare that I am an adult (18 or over) and the parent or lawful guardian of this patient, and I am giving the consents below on their behalf.",
+    "consentHeading": "Your consent",
+    "consentAppointment": "I agree to {clinic} processing the personal data listed above to schedule and manage this appointment.",
+    "consentReminders": "Send me appointment reminders by SMS or WhatsApp.",
+    "consentMarketing": "Send me occasional offers and clinic news.",
+    "submit": "Request appointment",
+    "successTitle": "Appointment requested",
+    "successText": "We will call you to confirm your slot.",
+    "referenceLabel": "Your reference ID",
+    "referenceHint": "Keep this ID. You will need it, with your mobile number or email, to see, correct or erase your data or to withdraw consent on the Data Rights page.",
+    "errors": {
+      "name": "Please enter the patient's name.",
+      "phone": "Please enter a valid 10-digit mobile number.",
+      "email": "Please enter a valid email address or leave it empty.",
+      "service": "Please choose a service.",
+      "date": "Please choose a date from today onwards.",
+      "slot": "Please choose a time.",
+      "isMinor": "Please tell us whether the patient is under 18.",
+      "guardianName": "Please enter the parent or guardian's name.",
+      "guardianRelationship": "Please choose the relationship.",
+      "guardianDeclaration": "A parent or guardian must confirm this declaration.",
+      "consentAppointment": "We need your consent to book the appointment."
+    }
+  },
+  "rights": {
+    "title": "Your data rights",
+    "intro": "Use this page to see, correct, update or erase your data, withdraw consent, nominate someone, or download your data. First we need to check it is you.",
+    "verifyHeading": "Verify your identity",
+    "referenceId": "Reference ID (e.g. DP-7K3QXM)",
+    "contact": "Registered mobile number or email",
+    "sendCode": "Send one-time code",
+    "codeSent": "If the details match our records, we have sent a 6-digit code to that number or email. It expires in {minutes} minutes.",
+    "code": "One-time code",
+    "verify": "Verify",
+    "signOut": "Sign out",
+    "lostReference": "Lost your reference ID? Contact our Grievance Officer using the details below.",
+    "accessHeading": "Your data",
+    "accessIntro": "A summary of the personal data we hold about you, how we use it and who we share it with.",
+    "processingHeading": "How we use it",
+    "processorsHeading": "Who processes it for us",
+    "consentsHeading": "Your consents",
+    "withdraw": "Withdraw",
+    "give": "Give consent",
+    "statusGiven": "Given",
+    "statusNotGiven": "Not given",
+    "statusWithdrawn": "Withdrawn",
+    "correctHeading": "Correct, complete or update your details",
+    "save": "Save changes",
+    "eraseHeading": "Erase your data",
+    "eraseIntro": "We will erase everything we are not required by law to keep. Download your data first if you want a copy. If all your data is erased you will no longer be able to sign in here.",
+    "eraseConfirm": "I understand and want my data erased.",
+    "erase": "Erase my data",
+    "nominateHeading": "Nominate someone",
+    "nominateIntro": "Choose a person who can exercise your rights if you die or become unable to do so.",
+    "nomineeName": "Nominee's full name",
+    "nomineeRelationship": "Relationship to you",
+    "nomineeContact": "Nominee's mobile number or email",
+    "nominate": "Save nominee",
+    "downloadHeading": "Download your data",
+    "download": "Download as JSON",
+    "done": "Done. We have recorded your request.",
+    "contactFooter": "Questions about this response? Contact {name}, {designation}: {email}, {phone}.",
+    "appointmentsHeading": "Appointments",
+    "clinicalRecord": "Part of your clinical record (kept by law)",
+    "currentNominee": "Current nominee",
+    "erasedHeading": "What we erased",
+    "retainedHeading": "What we kept, and why",
+    "legalBasis": "Legal basis",
+    "fullyErased": "All your personal data has been erased and you have been signed out.",
+    "requestsHeading": "Your requests",
+    "fields": {
+      "name": "Name",
+      "phone": "Mobile number",
+      "email": "Email"
+    },
+    "noData": "None"
+  },
+  "grievance": {
+    "title": "Raise a grievance",
+    "intro": "If you are unhappy with how we have handled your personal data or a request, tell us here. Our Grievance Officer will reply within {days} days.",
+    "withReference": "I have a reference ID",
+    "withoutReference": "I don't have a reference ID",
+    "name": "Your name",
+    "contactDetail": "Mobile number or email for our reply",
+    "category": "What is it about?",
+    "categories": {
+      "CONSENT": "Consent or withdrawal",
+      "ACCESS": "Access to my data",
+      "CORRECTION": "Correction or erasure",
+      "SECURITY": "Security of my data",
+      "OTHER": "Something else"
+    },
+    "description": "Describe the problem",
+    "descriptionHint": "Please do not include medical details we do not need to look into your complaint.",
+    "submit": "Submit grievance",
+    "successTitle": "Grievance received",
+    "referenceNumber": "Reference number",
+    "dueDate": "We will reply by",
+    "board": "If you are not satisfied with our reply, or we do not reply by this date, you may complain to the {board} under section 13(3) of the DPDP Act, 2023.",
+    "duty": "Please make sure the information you give is accurate. Under section 15 of the Act, you must not file a false or frivolous complaint."
+  }
+}

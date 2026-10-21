@@ -7,9 +7,11 @@
         "theme/*": ["theme/*"],
         "styles/*": ["styles/*"],
         "plugins/*": ["plugins/*"],
-        "assets/*": ["assets/*"]
+        "assets/*": ["assets/*"],
+        "config/*": ["config/*"],
+        "lib/*": ["lib/*"],
+        "locales/*": ["locales/*"]
       }
     },
     "include": ["src"]
   }
-  

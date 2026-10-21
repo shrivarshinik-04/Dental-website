@@ -36,3 +36,7 @@ yarn-error.log*
 
 tools/node_modules
 tools/output
+# local env and databases (contain secrets / personal data)
+.env
+prisma/*.db
+prisma/*.db-journal

@@ -1,7 +1,10 @@
 import NextLink from 'components/NextLink';
 import SocialLinks from 'components/SocialLinks';
+import ContactBlock from 'components/ContactBlock';
 import Image from 'next/image';
-import { services, usefulLinks } from '../data';
+import { useConsent } from 'lib/consentStore';
+import { useT } from 'lib/i18n';
+import { services, usefulLinks, legalLinks } from '../data';
 
 /**
  * Renders a footer widget with a title and list of links.
@@ -14,9 +17,9 @@ const renderWidget = (list, title) => (
   <div className="widget">
     <h3 className="widget-title fs-24 mb-3 merriweather">{title}</h3>
     <ul className="list-unstyled text-reset mb-0">
-      {list.map(({ title, id }) => (
+      {list.map(({ title, id, href }) => (
         <li key={id}>
-          <NextLink href="#" title={title} className="lato" />
+          <NextLink href={href || '#'} title={title} className="lato" />
         </li>
       ))}
     </ul>
@@ -30,6 +33,8 @@ const renderWidget = (list, title) => (
  */
 const Footer = () => {
   const currentYear = new Date().getFullYear();
+  const { openBanner } = useConsent();
+  const { t } = useT();
 
   return (
     <footer className="border-top overflow-hidden bg-color">
@@ -61,6 +66,7 @@ const Footer = () => {
           </div>
           <div className="col-sm-6 col-md-4 col-lg-2 mt-md-5 mt-lg-0 mt-10 text-white">
             {renderWidget(usefulLinks, 'Useful Links')}
+            <div className="mt-6">{renderWidget(legalLinks, 'Privacy')}</div>
           </div>
 
           {/* Contact Info */}
@@ -90,6 +96,20 @@ const Footer = () => {
         </div>
 
         <hr className="mt-4 mt-md-4 mb-7" />
+
+        {/* DPDP Rules 2025, Rule 9: contact for questions about personal data, shown prominently. */}
+        <div className="row gy-4 align-items-center mb-7">
+          <div className="col-lg-8">
+            <ContactBlock variant="dark" />
+          </div>
+          <div className="col-lg-4 text-lg-end">
+            {/* s.6(4): withdrawal as easy as giving consent, from every page. */}
+            <button type="button" className="btn btn-sm btn-white rounded lato text-title" onClick={openBanner}>
+              <i className="uil uil-setting me-1" aria-hidden="true" />
+              {t('cookie.settings')}
+            </button>
+          </div>
+        </div>
 
         <div className="d-md-flex align-items-center justify-content-center">
           <p className="mb-2 mb-lg-0 text-white lato text-center">

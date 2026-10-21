@@ -1,0 +1,270 @@
+// DPDP Act 2023 / DPDP Rules 2025 data model.
+//
+// - SQLite in development, PostgreSQL in production: change `provider` below and
+//   DATABASE_URL; nothing else in this schema is SQLite-specific. JSON payloads are
+//   stored as strings so the schema stays portable.
+// - Fields marked "encrypted" hold AES-256-GCM ciphertext produced by
+//   src/lib/crypto.js (s.8(5), Rule 6(1)(a)). Never write plaintext into them.
+// - ConsentRecord is APPEND-ONLY (s.6(10) burden of proof): never update a row,
+//   every grant/denial/withdrawal inserts a new event.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum ConsentPurpose {
+  APPOINTMENT
+  APPOINTMENT_REMINDERS_SMS_WHATSAPP
+  MARKETING
+  ANALYTICS_COOKIES
+  FUNCTIONAL_COOKIES
+}
+
+enum ConsentStatus {
+  GIVEN
+  DENIED
+  WITHDRAWN
+}
+
+enum ConsentChannel {
+  COOKIE_BANNER
+  APPOINTMENT_FORM
+  PREFERENCE_CENTRE
+}
+
+enum AppointmentStatus {
+  REQUESTED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum RightsRequestType {
+  ACCESS
+  CORRECTION
+  COMPLETION
+  UPDATE
+  ERASURE
+  NOMINATION
+  WITHDRAW_CONSENT
+}
+
+enum RequestStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  PARTIALLY_COMPLETED
+  REJECTED
+}
+
+enum BreachStatus {
+  OPEN
+  BOARD_INTIMATED
+  REPORT_SUBMITTED
+  CLOSED
+}
+
+// s.5 / Rule 3: the exact notice shown. Consents point at the version + language
+// that was on screen so the Data Fiduciary can prove what was agreed to (s.6(10)).
+model NoticeVersion {
+  id            String          @id @default(cuid())
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  version       String
+  language      String
+  content       String // full notice JSON as rendered (locale "notice" section)
+  contentHash   String // SHA-256 of `content`, detects edits without a version bump
+  dataItems     String // JSON array: itemised personal data (Rule 3(b)(i))
+  purposes      String // JSON array: specified purposes (Rule 3(b)(ii))
+  effectiveFrom DateTime
+  consents      ConsentRecord[]
+
+  @@unique([version, language])
+}
+
+// s.6 consent ledger. Append-only.
+model ConsentRecord {
+  id               String          @id @default(cuid())
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  dataPrincipalId  String?
+  dataPrincipal    DataPrincipal?  @relation(fields: [dataPrincipalId], references: [id])
+  anonymousId      String? // random UUID from the first-party `dpdp_aid` cookie
+  purpose          ConsentPurpose
+  status           ConsentStatus
+  noticeVersionId  String
+  noticeVersion    NoticeVersion   @relation(fields: [noticeVersionId], references: [id])
+  language         String
+  channel          ConsentChannel
+  givenByGuardian  Boolean         @default(false)
+  ipHash           String? // HMAC-SHA-256(IP_HASH_SALT, ip). Raw IP is never stored.
+  userAgent        String?
+  timestamp        DateTime        @default(now())
+
+  @@index([dataPrincipalId, purpose, timestamp])
+  @@index([anonymousId, purpose, timestamp])
+  @@index([timestamp])
+}
+
+// The person the data is about. `referenceId` (DP-XXXXXX) is the identifier the
+// Data Principal uses to exercise rights (Rule 14(5)).
+model DataPrincipal {
+  id             String          @id @default(cuid())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  referenceId    String          @unique
+  name           String? // encrypted
+  phone          String? // encrypted
+  email          String? // encrypted
+  erasedAt       DateTime? // set when identifying fields are erased (s.8(7), s.12(3))
+  appointments   Appointment[]
+  consents       ConsentRecord[]
+  rightsRequests RightsRequest[]
+  grievances     Grievance[]
+  nominations    Nomination[]
+  otpChallenges  OtpChallenge[]
+}
+
+model Appointment {
+  id                   String            @id @default(cuid())
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  dataPrincipalId      String
+  dataPrincipal        DataPrincipal     @relation(fields: [dataPrincipalId], references: [id], onDelete: Cascade)
+  preferredDate        DateTime
+  preferredSlot        String // e.g. "MORNING" / "EVENING"
+  service              String // encrypted (reveals dental condition)
+  notes                String? // encrypted (reason for visit)
+  patientIsMinor       Boolean           @default(false)
+  guardianName         String? // encrypted
+  guardianRelationship String? // encrypted
+  status               AppointmentStatus @default(REQUESTED)
+  // Set by clinic staff once the visit forms part of the clinical record that
+  // must be retained by law. Blocks erasure (s.8(7) "unless retention is necessary
+  // for compliance with any law"). See RETENTION.clinicalRecordDays.
+  legallyRequired      Boolean           @default(false)
+  completedAt          DateTime?
+
+  @@index([dataPrincipalId])
+  @@index([status, preferredDate])
+}
+
+// Short-lived one-time codes for verifying the Data Principal (Rule 14(1)).
+model OtpChallenge {
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  dataPrincipalId String
+  dataPrincipal   DataPrincipal @relation(fields: [dataPrincipalId], references: [id], onDelete: Cascade)
+  channel         String // "phone" | "email"
+  codeHash        String
+  expiresAt       DateTime
+  attempts        Int           @default(0)
+  consumedAt      DateTime?
+
+  @@index([dataPrincipalId, createdAt])
+}
+
+// s.11–s.14 requests. `payload` / `response` are JSON strings with no raw
+// contact details (corrections are stored encrypted inside payload).
+model RightsRequest {
+  id                 String            @id @default(cuid())
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  dataPrincipalId    String?
+  dataPrincipal      DataPrincipal?    @relation(fields: [dataPrincipalId], references: [id], onDelete: SetNull)
+  type               RightsRequestType
+  status             RequestStatus     @default(OPEN)
+  identifierProvided String // the Rule 14(5) identifier, i.e. the reference ID
+  verificationMethod String // e.g. "OTP_PHONE", "OTP_EMAIL"
+  payload            String?
+  response           String?
+  dueDate            DateTime
+  respondedAt        DateTime?
+
+  @@index([status, dueDate])
+}
+
+// s.13 grievance redressal. dueDate <= createdAt + 90 days (Rule 14(3)).
+model Grievance {
+  id                 String         @id @default(cuid())
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  referenceNumber    String         @unique
+  dataPrincipalId    String?
+  dataPrincipal      DataPrincipal? @relation(fields: [dataPrincipalId], references: [id], onDelete: SetNull)
+  verified           Boolean        @default(false)
+  contactName        String? // encrypted, only for complainants without a reference ID
+  contactDetail      String? // encrypted, ditto
+  category           String
+  description        String // encrypted
+  status             RequestStatus  @default(OPEN)
+  dueDate            DateTime
+  resolution         String?
+  resolvedAt         DateTime?
+  escalationNote     String // s.13(3): right to approach the Data Protection Board
+
+  @@index([status, dueDate])
+}
+
+// s.14 / Rule 14(4): nominee who may exercise rights on death or incapacity.
+model Nomination {
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  dataPrincipalId String
+  dataPrincipal   DataPrincipal @relation(fields: [dataPrincipalId], references: [id], onDelete: Cascade)
+  nomineeName     String // encrypted
+  relationship    String // encrypted
+  contact         String // encrypted
+  active          Boolean       @default(true)
+}
+
+// Rule 6(1)(c) / Rule 8(3): who accessed or changed personal data, and when.
+// Holds identifiers only, never the personal data itself.
+model AuditLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  actor     String // "public", "data-principal:DP-XXXXXX", "admin:<username>", "system:retention"
+  action    String // e.g. "CREATE", "READ", "UPDATE", "DELETE", "EXPORT"
+  entity    String
+  entityId  String?
+  timestamp DateTime @default(now())
+  ipHash    String?
+  detail    String? // short, non-personal context
+
+  @@index([timestamp])
+  @@index([entity, entityId])
+}
+
+// s.8(6) / Rule 7 personal data breach register.
+model BreachIncident {
+  id                          String       @id @default(cuid())
+  createdAt                   DateTime     @default(now())
+  updatedAt                   DateTime     @updatedAt
+  status                      BreachStatus @default(OPEN)
+  detectedAt                  DateTime
+  occurredAt                  DateTime? // timing (Rule 7(1)(a), 7(2)(a))
+  location                    String? // where it occurred (Rule 7(1)(a), 7(2)(a))
+  description                 String
+  nature                      String
+  extent                      String
+  affectedCount               Int          @default(0)
+  likelyImpact                String? // Rule 7(2)(a)
+  consequencesForPrincipals   String? // Rule 7(1)(b)
+  mitigation                  String? // Rule 7(1)(c), 7(2)(b)(ii)
+  safetyMeasuresForPrincipals String? // Rule 7(1)(d)
+  rootCause                   String? // Rule 7(2)(b)(i) facts, circumstances, reasons
+  responsibleFindings         String? // Rule 7(2)(b)(iii) findings on who caused it
+  remedialMeasures            String? // Rule 7(2)(b)(iv) measures to prevent recurrence
+  boardIntimatedAt            DateTime? // Rule 7(2)(a): "without delay"
+  detailedReportDueAt         DateTime // Rule 7(2)(b): detectedAt + 72h
+  detailedReportSentAt        DateTime?
+  principalsIntimatedAt       DateTime? // Rule 7(1): "without delay"
+}

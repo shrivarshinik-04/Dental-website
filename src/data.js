@@ -12,13 +12,20 @@ export const services = [
 
 // ===================== Useful Links =====================
 export const usefulLinks = [
-  { id: 1, title: 'Home' },
+  { id: 1, title: 'Home', href: '/' },
   { id: 2, title: 'About Us' },
   { id: 3, title: 'Gallery' },
   { id: 4, title: 'Contact Us' },
-  { id: 5, title: 'Book Appointment' },
-  { id: 6, title: 'Privacy Policy' },
+  { id: 5, title: 'Book Appointment', href: '/book-appointment' },
   { id: 7, title: 'Sitemap' }
+];
+
+// ===================== Privacy & Legal (DPDP Act 2023) =====================
+export const legalLinks = [
+  { id: 1, title: 'Privacy Policy', href: '/privacy-policy' },
+  { id: 2, title: 'Cookie Policy', href: '/cookie-policy' },
+  { id: 3, title: 'Your Data Rights', href: '/data-rights' },
+  { id: 4, title: 'Raise a Grievance', href: '/grievance' }
 ];
 
 // ===================== About List =====================

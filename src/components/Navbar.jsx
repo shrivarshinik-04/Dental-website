@@ -102,7 +102,7 @@ const Navbar = ({
             >
               <NextLink
                 title="Book Appointment"
-                href="#"
+                href="/book-appointment"
                 className="btn btn-sm bg-color text-white mb-lg-1 rounded border-0"
               />
             </li>

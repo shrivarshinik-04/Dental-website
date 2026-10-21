@@ -24,10 +24,6 @@
     position: relative !important;
   }
 
-  .hero {
-    background: url('/img/hero-bg.webp') no-repeat center/contain;
-  }
-
   .hero-text {
     max-width: 100% !important;
     align-items: center;

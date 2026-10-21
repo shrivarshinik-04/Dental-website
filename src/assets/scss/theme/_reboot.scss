@@ -1,7 +1,9 @@
 //----------------------------------------------------------//
-//	IMPORT GOOGLE FONTS
+//	FONTS
 //----------------------------------------------------------//
-@import url($path-to-fonts);
+// Manrope, Lato and Merriweather are self-hosted via @fontsource (pages/_app.jsx).
+// The Google Fonts @import was removed so no third-party request happens before
+// consent (DPDP Act s.6(1)).
 //----------------------------------------------------------//
 //	BODY
 //----------------------------------------------------------//

@@ -1,12 +1,12 @@
 /* Typography */
 .merriweather {
-  font-family: 'Merriweather', serif;
+  font-family: 'Merriweather', 'Noto Sans Devanagari', serif;
   font-weight: 600;
   font-style: normal;
 }
 
 .lato {
-  font-family: 'Lato', sans-serif;
+  font-family: 'Lato', 'Noto Sans Devanagari', sans-serif;
   font-weight: 400;
   font-style: normal;
 }
@@ -78,8 +78,14 @@ section h2 {
 }
 
 /* Hero Section */
+/* The template's /img/hero-bg.webp is a "1500x1000" placeholder, so the hero uses a
+   gradient in the theme colours. To use a clinic photo, save it (self-hosted) as
+   /public/img/hero-bg.webp and add it as the first layer:
+   background: url('/img/hero-bg.webp') center right / cover no-repeat, linear-gradient(...); */
 .hero {
-  background: url('/img/hero-bg.webp') center right / cover no-repeat;
+  background:
+    radial-gradient(circle at 85% 30%, rgba(179, 229, 252, 0.9) 0%, rgba(179, 229, 252, 0) 45%),
+    linear-gradient(100deg, #ffffff 0%, #e0e7ef 45%, #b3e5fc 100%);
 }
 
 .hero h1,
@@ -139,7 +145,7 @@ section h2 {
 /* Navigation Styles */
 .nav-item .nav-link,
 .dropdown-item {
-  font-family: 'Merriweather', serif;
+  font-family: 'Merriweather', 'Noto Sans Devanagari', serif;
   transition: all 0.3s ease;
 }
 
@@ -193,4 +199,20 @@ section h2 {
 
 .navbar-expand-lg.transparent:not(.fixed) {
   padding-top: 0 !important;
+}
+
+/* Cookie consent toggles (DPDP Act s.6(1)): "off" must look off. The theme's switch is
+   the same colour in both states, so the banner uses grey for off, theme navy for on. */
+.consent-switch.form-switch .form-check-input:not(:checked) {
+  background-color: #adb5bd;
+  border-color: #adb5bd;
+}
+
+.consent-switch.form-switch .form-check-input:checked {
+  background-color: #003366;
+  border-color: #003366;
+}
+
+.consent-switch .form-check-label {
+  margin-left: 0.5rem;
 }

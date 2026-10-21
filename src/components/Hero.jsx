@@ -36,7 +36,7 @@ const Hero = () => {
                 <div className="animate__animated animate__slideInUp animate__delay-3s merriweather">
                   <NextLink
                     title="Book Appointment"
-                    href="#"
+                    href="/book-appointment"
                     className="btn btn-lg rounded"
                     aria-label="Book an appointment"
                   />
