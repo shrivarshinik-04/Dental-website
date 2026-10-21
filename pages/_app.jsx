@@ -27,7 +27,6 @@ import '@fontsource/noto-sans-devanagari/700.css';
 import 'animate.css';
 import 'styles/style.css';
 import 'styles/responsive.css';
-import 'plyr-react/plyr.css';
 import 'plugins/scrollcue/scrollCue.css';
 import 'assets/scss/style.scss';
 
