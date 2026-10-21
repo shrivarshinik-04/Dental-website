@@ -6,7 +6,9 @@
 import prisma from 'lib/db';
 import { adminProps, noStore } from 'lib/adminData';
 import { CONSENT_OPTIONS, consentFilters, consentSelect, consentWhere } from 'lib/consentQuery';
+import { PATIENT_SELECT, patientOf } from 'lib/patients';
 import AdminLayout from 'components/AdminLayout';
+import PatientRef from 'components/PatientRef';
 
 const Consents = ({ admin, permissions, denied, records = [], filters = {}, total = 0 }) => {
   const query = new URLSearchParams(Object.entries(filters).filter(([, v]) => v)).toString();
@@ -68,7 +70,7 @@ const Consents = ({ admin, permissions, denied, records = [], filters = {}, tota
           <thead>
             <tr>
               <th>Time</th>
-              <th>Reference / anon ID</th>
+              <th>Patient / browser ID</th>
               <th>Purpose</th>
               <th>Status</th>
               <th>Channel</th>
@@ -82,7 +84,7 @@ const Consents = ({ admin, permissions, denied, records = [], filters = {}, tota
             {records.map((r) => (
               <tr key={r.id}>
                 <td>{new Date(r.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-                <td>{r.dataPrincipal?.referenceId || r.anonymousId?.slice(0, 8)}</td>
+                <td>{r.patient ? <PatientRef patient={r.patient} /> : `browser ${r.anonymousId?.slice(0, 8)}`}</td>
                 <td>{r.purpose}</td>
                 <td>
                   <span className={`badge ${r.status === 'GIVEN' ? 'bg-success' : r.status === 'WITHDRAWN' ? 'bg-warning text-dark' : 'bg-secondary'}`}>
@@ -110,10 +112,17 @@ export const getServerSideProps = adminProps('consents', async ({ res, query }) 
   const filters = consentFilters(query);
   const where = consentWhere(filters);
   const [records, total] = await Promise.all([
-    prisma.consentRecord.findMany({ where, orderBy: { timestamp: 'desc' }, take: 500, select: consentSelect }),
+    // The page shows the patient's name; the CSV export (same select without it) does not.
+    prisma.consentRecord.findMany({
+      where,
+      orderBy: { timestamp: 'desc' },
+      take: 500,
+      select: { ...consentSelect, dataPrincipal: { select: PATIENT_SELECT } }
+    }),
     prisma.consentRecord.count({ where })
   ]);
-  return { entity: 'ConsentRecord', viewed: records.length ? [`list:${records.length}`] : [], props: { records, filters, total } };
+  const rows = records.map(({ dataPrincipal, ...r }) => ({ ...r, patient: patientOf(dataPrincipal) }));
+  return { entity: 'ConsentRecord', viewed: rows.length ? [`list:${rows.length}`] : [], props: { records: rows, filters, total } };
 });
 
 export default Consents;

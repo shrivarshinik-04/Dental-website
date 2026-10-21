@@ -6,7 +6,9 @@
 import prisma from 'lib/db';
 import { nomineeFromRequest } from 'lib/rights';
 import { adminProps, noStore } from 'lib/adminData';
+import { PATIENT_SELECT, patientOf } from 'lib/patients';
 import AdminLayout from 'components/AdminLayout';
+import PatientRef from 'components/PatientRef';
 
 const Nominations = ({ admin, permissions, denied, nominations = [] }) => (
   <AdminLayout title="Nominations" admin={admin} permissions={permissions} denied={denied}>
@@ -25,7 +27,9 @@ const Nominations = ({ admin, permissions, denied, nominations = [] }) => (
         <tbody>
           {nominations.map((n) => (
             <tr key={n.id} className={n.current ? '' : 'text-muted'}>
-              <td>{n.referenceId}</td>
+              <td>
+                <PatientRef patient={n.patient} />
+              </td>
               <td>{n.name}</td>
               <td>{n.relationship}</td>
               <td>{n.contact}</td>
@@ -46,7 +50,7 @@ export const getServerSideProps = adminProps('nominations', async ({ res }) => {
     where: { type: 'NOMINATION', payload: { not: null } },
     orderBy: { createdAt: 'desc' },
     take: 300,
-    include: { dataPrincipal: { select: { id: true, referenceId: true } } }
+    include: { dataPrincipal: { select: PATIENT_SELECT } }
   });
   const seen = new Set();
   const nominations = rows
@@ -55,7 +59,7 @@ export const getServerSideProps = adminProps('nominations', async ({ res }) => {
       if (!nominee) return null;
       const current = !seen.has(r.dataPrincipalId);
       seen.add(r.dataPrincipalId);
-      return { id: r.id, referenceId: r.dataPrincipal?.referenceId || '—', current, ...nominee };
+      return { id: r.id, patient: patientOf(r.dataPrincipal), current, ...nominee };
     })
     .filter(Boolean);
   return { entity: 'RightsRequest', viewed: nominations.map((n) => n.id), props: { nominations } };

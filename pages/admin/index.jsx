@@ -29,7 +29,8 @@ const AdminHome = ({ admin, permissions, denied, stats = [] }) => (
 export const getServerSideProps = adminProps(null, async (ctx, admin) => {
   const now = new Date();
   const open = { status: { in: ['OPEN', 'IN_PROGRESS'] } };
-  const [appointments, rights, rightsOverdue, grievances, grievancesOverdue, breaches, breachesOverdue] = await Promise.all([
+  const [patients, appointments, rights, rightsOverdue, grievances, grievancesOverdue, breaches, breachesOverdue] = await Promise.all([
+    prisma.dataPrincipal.count({ where: { erasedAt: null } }),
     prisma.appointment.count({ where: { status: { in: ['REQUESTED', 'CONFIRMED'] } } }),
     prisma.rightsRequest.count({ where: open }),
     prisma.rightsRequest.count({ where: { ...open, dueDate: { lt: now } } }),
@@ -40,6 +41,7 @@ export const getServerSideProps = adminProps(null, async (ctx, admin) => {
     prisma.breachIncident.count({ where: { certInReportedAt: null, detectedAt: { lt: new Date(now.getTime() - 6 * 3600000) } } })
   ]);
   const all = [
+    { label: 'Patients', value: patients, overdue: 0, href: '/admin/patients', perm: 'appointments' },
     { label: 'Pending appointments', value: appointments, overdue: 0, href: '/admin/appointments', perm: 'appointments' },
     { label: 'Open rights requests', value: rights, overdue: rightsOverdue, href: '/admin/rights', perm: 'rights' },
     { label: 'Open grievances', value: grievances, overdue: grievancesOverdue, href: '/admin/grievances', perm: 'grievances' },

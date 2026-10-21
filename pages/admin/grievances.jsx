@@ -2,12 +2,15 @@
  * Grievances (DPDP Act s.13) with the ≤ 90-day response countdown (Rule 14(3)) and
  * overdue highlighting.
  */
+import { Fragment } from 'react';
 import prisma from 'lib/db';
 import { decrypt } from 'lib/crypto';
 import { adminProps, noStore } from 'lib/adminData';
+import { PATIENT_SELECT, patientOf } from 'lib/patients';
 import AdminLayout from 'components/AdminLayout';
 import AdminRespondForm from 'components/AdminRespondForm';
 import Countdown from 'components/Countdown';
+import PatientRef from 'components/PatientRef';
 
 const OPEN = ['OPEN', 'IN_PROGRESS'];
 
@@ -36,7 +39,13 @@ const Grievances = ({ admin, permissions, denied, grievances = [] }) => (
                 <td>{g.referenceNumber}</td>
                 <td>{new Date(g.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
                 <td>
-                  {g.verified ? `${g.principalRef} (verified)` : `${g.contactName}, ${g.contactDetail} (unverified)`}
+                  {g.verified ? (
+                    <Fragment>
+                      <PatientRef patient={g.patient} /> (verified)
+                    </Fragment>
+                  ) : (
+                    `${g.contactName}, ${g.contactDetail} (unverified)`
+                  )}
                 </td>
                 <td>{g.category}</td>
                 <td style={{ maxWidth: 320, whiteSpace: 'pre-wrap' }}>{g.description}</td>
@@ -59,7 +68,7 @@ export const getServerSideProps = adminProps('grievances', async ({ res }) => {
   const rows = await prisma.grievance.findMany({
     orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
     take: 300,
-    include: { dataPrincipal: { select: { referenceId: true } } }
+    include: { dataPrincipal: { select: PATIENT_SELECT } }
   });
   return {
     entity: 'Grievance',
@@ -70,7 +79,7 @@ export const getServerSideProps = adminProps('grievances', async ({ res }) => {
         referenceNumber: g.referenceNumber,
         createdAt: g.createdAt,
         verified: g.verified,
-        principalRef: g.dataPrincipal?.referenceId || null,
+        patient: patientOf(g.dataPrincipal),
         contactName: decrypt(g.contactName),
         contactDetail: decrypt(g.contactDetail),
         category: g.category,

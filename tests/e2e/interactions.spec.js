@@ -139,7 +139,8 @@ test('admin navigation: every section link loads for the admin role', async ({ b
   const messages = watchConsole(page);
   await page.goto('/admin', { waitUntil: 'networkidle' });
   const links = await page.locator('nav[aria-label="Admin sections"] a').evaluateAll((as) => as.map((a) => a.getAttribute('href')));
-  expect(links.length).toBe(8);
+  expect(links).toContain('/admin/patients');
+  expect(links.length).toBe(9); // overview + 8 sections
   for (const href of links) {
     const response = await page.goto(href, { waitUntil: 'networkidle' });
     expect(response.status(), href).toBe(200);

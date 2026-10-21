@@ -4,9 +4,11 @@
  */
 import prisma from 'lib/db';
 import { adminProps, noStore } from 'lib/adminData';
+import { PATIENT_SELECT, patientOf } from 'lib/patients';
 import AdminLayout from 'components/AdminLayout';
 import AdminRespondForm from 'components/AdminRespondForm';
 import Countdown from 'components/Countdown';
+import PatientRef from 'components/PatientRef';
 
 const OPEN = ['OPEN', 'IN_PROGRESS'];
 
@@ -21,7 +23,7 @@ const Rights = ({ admin, permissions, denied, requests = [] }) => (
         <thead>
           <tr>
             <th>Received</th>
-            <th>Reference</th>
+            <th>Patient</th>
             <th>Type</th>
             <th>Verified by</th>
             <th>Status</th>
@@ -37,7 +39,9 @@ const Rights = ({ admin, permissions, denied, requests = [] }) => (
             return (
               <tr key={r.id} className={overdue ? 'table-danger' : ''}>
                 <td>{new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-                <td>{r.identifierProvided}</td>
+                <td>
+                  <PatientRef patient={r.patient} fallback={r.identifierProvided} />
+                </td>
                 <td>{r.type}</td>
                 <td>{r.verificationMethod}</td>
                 <td>{r.status}</td>
@@ -59,7 +63,12 @@ const Rights = ({ admin, permissions, denied, requests = [] }) => (
 
 export const getServerSideProps = adminProps('rights', async ({ res }) => {
   noStore(res);
-  const requests = await prisma.rightsRequest.findMany({ orderBy: [{ status: 'asc' }, { dueDate: 'asc' }], take: 300 });
+  const rows = await prisma.rightsRequest.findMany({
+    orderBy: [{ status: 'asc' }, { dueDate: 'asc' }],
+    take: 300,
+    include: { dataPrincipal: { select: PATIENT_SELECT } }
+  });
+  const requests = rows.map(({ dataPrincipal, ...r }) => ({ ...r, patient: patientOf(dataPrincipal) }));
   return { entity: 'RightsRequest', viewed: requests.map((r) => r.id), props: { requests } };
 });
 

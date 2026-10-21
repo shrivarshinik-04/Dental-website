@@ -181,7 +181,7 @@ test.describe('booking form', () => {
     expect(decrypt(appt.service)).toBe('Orthodontics');
     expect(decrypt(appt.notes)).toBe('Synthetic reason\nsecond line'); // newline kept
     expect([appt.status, appt.patientIsMinor, appt.legallyRequired]).toEqual(['REQUESTED', false, false]);
-    expect([appt.guardianName, appt.guardianRelationship, appt.guardianPhone, appt.guardianEmail]).toEqual([null, null, null, null]);
+    expect(await db().guardian.count({ where: { appointmentId: appt.id } })).toBe(0);
 
     expect(principal.consents).toHaveLength(1);
     const consent = principal.consents[0];
@@ -234,7 +234,9 @@ test.describe('booking form', () => {
     expect([principal.phone, principal.email]).toEqual([null, null]);
     const appt = principal.appointments[0];
     expect(appt.patientIsMinor).toBe(true);
-    expect([decrypt(appt.guardianName), decrypt(appt.guardianRelationship), decrypt(appt.guardianPhone), decrypt(appt.guardianEmail)]).toEqual([
+    const guardianRow = await db().guardian.findUnique({ where: { appointmentId: appt.id } });
+    expect(guardianRow.dataPrincipalId).toBe(principal.id);
+    expect([decrypt(guardianRow.name), decrypt(guardianRow.relationship), decrypt(guardianRow.phone), decrypt(guardianRow.email)]).toEqual([
       'Test Guardian Stored',
       'LEGAL_GUARDIAN',
       guardianPhone,
@@ -854,6 +856,49 @@ test.describe('admin forms', () => {
     const fromForm = await db().breachIncident.findFirst({ where: { description: 'Synthetic incident from the admin form.' } });
     expect(fromForm).toMatchObject({ nature: 'Synthetic nature.', extent: 'Synthetic extent.', affectedCount: 2, status: 'OPEN' });
     await ctx.close();
+  });
+
+  test('patients page and admin lists show the reference ID with the patient\'s name; guardians listed from their own table; views audited', async ({ playwright, baseURL }) => {
+    const adultClient = await apiClient(playwright, baseURL);
+    const adult = await bookViaApi(adultClient, baseURL, { name: 'Test Listed Adult' });
+    await adultClient.dispose();
+    const guardianPhone = testPhone();
+    const childClient = await apiClient(playwright, baseURL);
+    const child = await bookViaApi(childClient, baseURL, {
+      name: 'Test Listed Child',
+      phone: '',
+      isMinor: true,
+      guardianName: 'Test Listed Guardian',
+      guardianRelationship: 'LEGAL_GUARDIAN',
+      guardianPhone,
+      guardianDeclaration: true
+    });
+    await childClient.dispose();
+    const childRecord = await db().dataPrincipal.findUnique({ where: { referenceId: child.referenceId }, include: { guardians: true } });
+    expect(childRecord.guardians).toHaveLength(1);
+
+    const desk = await admin(playwright, baseURL, DESK); // reception may see patients, as on the appointments page
+    const res = await desk.get('/admin/patients');
+    expect(res.status()).toBe(200);
+    const html = (await res.text()).replace(/<!-- -->/g, ''); // React text markers
+    const rowOf = (ref) => html.slice(html.indexOf(ref), html.indexOf('</tr>', html.indexOf(ref)));
+    expect(rowOf(adult.referenceId)).toContain('Test Listed Adult');
+    expect(rowOf(child.referenceId)).toContain('Test Listed Child');
+    expect(rowOf(child.referenceId)).toContain('Test Listed Guardian (Legal guardian)');
+    expect(rowOf(child.referenceId)).toContain(guardianPhone);
+    expect(html).not.toContain('v1:'); // decrypted for staff, never ciphertext
+    const audit = await db().auditLog.findMany({ where: { action: 'READ', entityId: { in: [childRecord.id, childRecord.guardians[0].id] } } });
+    expect(audit.map((a) => a.entity).sort()).toEqual(['DataPrincipal', 'Guardian']);
+    await desk.dispose();
+
+    // The consent log shows the name next to the reference ID; the CSV export stays name-free.
+    const client = await admin(playwright, baseURL);
+    const page = await (await client.get(`/admin/consents?reference=${adult.referenceId}`)).text();
+    expect(page).toContain('Test Listed Adult');
+    const csv = await (await client.get(`/api/admin/consents-export?reference=${adult.referenceId}`)).text();
+    expect(csv).toContain(adult.referenceId);
+    expect(csv).not.toContain('Test Listed Adult');
+    await client.dispose();
   });
 
   test('consent ledger filter form: filters apply; unknown values are ignored; export follows the filter', async ({ browser, playwright, baseURL }) => {

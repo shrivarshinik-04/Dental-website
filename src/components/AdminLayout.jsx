@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
  * Shows only the sections the signed-in role may open.
  */
 const SECTIONS = [
+  ['/admin/patients', 'Patients', 'appointments'],
   ['/admin/appointments', 'Appointments', 'appointments'],
   ['/admin/consents', 'Consent log', 'consents'],
   ['/admin/rights', 'Rights requests', 'rights'],
