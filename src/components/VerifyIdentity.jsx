@@ -77,7 +77,11 @@ const VerifyIdentity = ({ onVerified }) => {
               onChange={(e) => setContact(e.target.value)}
               required
               maxLength={254}
+              aria-describedby="verify-contact-hint"
             />
+            <div id="verify-contact-hint" className="form-text">
+              {t('rights.contactHint')}
+            </div>
           </div>
           <button type="submit" className="btn bg-theme-dark text-white rounded" disabled={busy}>
             {busy ? t('common.loading') : t('rights.sendCode')}

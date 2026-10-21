@@ -7,6 +7,8 @@ import { useRouter } from 'next/router';
 import prisma from 'lib/db';
 import { decrypt } from 'lib/crypto';
 import { adminProps, noStore } from 'lib/adminData';
+import { auditMany } from 'lib/audit';
+import { hashedIp } from 'lib/http';
 import { postJson } from 'lib/api';
 import AdminLayout from 'components/AdminLayout';
 
@@ -51,7 +53,23 @@ const Appointments = ({ admin, permissions, denied, appointments = [] }) => {
                 <td>{a.phone}</td>
                 <td>{a.service}</td>
                 <td style={{ maxWidth: 220 }}>{a.reason}</td>
-                <td>{a.patientIsMinor ? `Yes: ${a.guardianName} (${a.guardianRelationship})` : 'No'}</td>
+                <td>
+                  {a.patientIsMinor ? (
+                    <>
+                      Yes: {a.guardianName} ({a.guardianRelationship})
+                      <br />
+                      {a.guardianPhone}
+                      {a.guardianEmail && (
+                        <>
+                          <br />
+                          {a.guardianEmail}
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    'No'
+                  )}
+                </td>
                 <td>
                   <select
                     className="form-select form-select-sm"
@@ -85,13 +103,19 @@ const Appointments = ({ admin, permissions, denied, appointments = [] }) => {
   );
 };
 
-export const getServerSideProps = adminProps('appointments', async ({ res }) => {
+export const getServerSideProps = adminProps('appointments', async ({ req, res }, admin) => {
   noStore(res);
   const rows = await prisma.appointment.findMany({
     orderBy: { preferredDate: 'desc' },
     take: 200,
     include: { dataPrincipal: { select: { referenceId: true, name: true, phone: true } } }
   });
+  // Viewing a parent or guardian's details is logged separately from the booking itself.
+  const minors = rows.filter((r) => r.patientIsMinor);
+  if (minors.length) {
+    const ipHash = hashedIp(req);
+    await auditMany(minors.map((r) => ({ actor: `admin:${admin.username}`, action: 'READ', entity: 'GuardianDetails', entityId: r.id, ipHash })));
+  }
   return {
     entity: 'Appointment',
     viewed: rows.map((r) => r.id),
@@ -108,6 +132,8 @@ export const getServerSideProps = adminProps('appointments', async ({ res }) => 
         patientIsMinor: a.patientIsMinor,
         guardianName: decrypt(a.guardianName),
         guardianRelationship: decrypt(a.guardianRelationship),
+        guardianPhone: decrypt(a.guardianPhone),
+        guardianEmail: decrypt(a.guardianEmail),
         status: a.status,
         legallyRequired: a.legallyRequired
       }))

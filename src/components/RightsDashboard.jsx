@@ -18,6 +18,10 @@ const purposeTitle = (t, purpose) => {
   return current === `notice.purposes.${purpose}.title` ? t(`rights.legacyPurposes.${purpose}`) : current;
 };
 
+const PERSON_FIELDS = ['name', 'phone', 'email'];
+const GUARDIAN_FIELDS = ['guardianName', 'guardianPhone', 'guardianEmail'];
+const inputType = (field) => (/email/i.test(field) ? 'email' : /phone/i.test(field) ? 'tel' : 'text');
+
 const Section = ({ title, children }) => (
   <section className="border rounded p-4 bg-white mb-4">
     <h2 className="fs-20 merriweather text-title mb-3">{title}</h2>
@@ -29,11 +33,14 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
   const { t, language } = useT();
   const [message, setMessage] = useState(null); // { type, text, contact }
   const [busy, setBusy] = useState(false);
-  const [profile, setProfile] = useState({
-    name: summary.personalData.name || '',
-    phone: summary.personalData.phone || '',
-    email: summary.personalData.email || ''
-  });
+  // Parent or guardian details, if any booking is for a patient under 18 (latest booking first).
+  const guardian = summary.appointments.find((a) => a.patientIsMinor) || null;
+  const current = {
+    ...summary.personalData,
+    ...(guardian && { guardianName: guardian.guardianName, guardianPhone: guardian.guardianPhone, guardianEmail: guardian.guardianEmail })
+  };
+  const profileFields = guardian ? [...PERSON_FIELDS, ...GUARDIAN_FIELDS] : PERSON_FIELDS;
+  const [profile, setProfile] = useState(Object.fromEntries(profileFields.map((f) => [f, current[f] || ''])));
   const [nominee, setNominee] = useState({ name: '', relationship: '', contact: '' });
   const [eraseConfirm, setEraseConfirm] = useState(false);
   const [erasure, setErasure] = useState(null);
@@ -58,9 +65,9 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
   const saveProfile = (e) => {
     e.preventDefault();
     const changed = Object.fromEntries(
-      Object.entries(profile).filter(([key, value]) => value.trim() !== (summary.personalData[key] || ''))
+      Object.entries(profile).filter(([key, value]) => value.trim() !== (current[key] || ''))
     );
-    const type = Object.keys(changed).some((k) => !summary.personalData[k]) ? 'COMPLETION' : 'CORRECTION';
+    const type = Object.keys(changed).some((k) => !current[k]) ? 'COMPLETION' : 'CORRECTION';
     run('/api/rights/correct', { type, ...changed });
   };
 
@@ -123,7 +130,7 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
       <Section title={t('rights.accessHeading')}>
         <p className="fs-15">{t('rights.accessIntro')}</p>
         <dl className="row mb-3">
-          {['name', 'phone', 'email'].map((field) => (
+          {PERSON_FIELDS.map((field) => (
             <div className="col-md-4" key={field}>
               <dt className="fs-14">{t(`rights.fields.${field}`)}</dt>
               <dd>{summary.personalData[field] || t('rights.noData')}</dd>
@@ -141,7 +148,12 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
                     <td>{t(`booking.slots.${a.preferredSlot}`)}</td>
                     <td>{a.service}</td>
                     <td>{a.reason}</td>
-                    <td>{a.patientIsMinor ? `${a.guardianName} (${t(`booking.relationships.${a.guardianRelationship}`)})` : ''}</td>
+                    <td>
+                      {a.patientIsMinor &&
+                        [`${a.guardianName} (${t(`booking.relationships.${a.guardianRelationship}`)})`, a.guardianPhone, a.guardianEmail]
+                          .filter(Boolean)
+                          .join(', ')}
+                    </td>
                     <td>{a.status}</td>
                     <td>{a.legallyRequired ? t('rights.clinicalRecord') : ''}</td>
                   </tr>
@@ -211,17 +223,17 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
 
       <Section title={t('rights.correctHeading')}>
         <form onSubmit={saveProfile} className="row g-3" noValidate>
-          {['name', 'phone', 'email'].map((field) => (
+          {profileFields.map((field) => (
             <div className="col-md-4" key={field}>
               <label htmlFor={`profile-${field}`} className="form-label">
                 {t(`rights.fields.${field}`)}
               </label>
               <input
                 id={`profile-${field}`}
-                type={field === 'email' ? 'email' : field === 'phone' ? 'tel' : 'text'}
+                type={inputType(field)}
                 className="form-control"
                 value={profile[field]}
-                maxLength={field === 'email' ? 254 : 100}
+                maxLength={inputType(field) === 'email' ? 254 : 100}
                 onChange={(e) => setProfile({ ...profile, [field]: e.target.value })}
               />
             </div>
