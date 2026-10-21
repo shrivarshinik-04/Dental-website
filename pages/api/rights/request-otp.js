@@ -9,7 +9,7 @@ import crypto from 'crypto';
 import { OTP } from 'config/compliance';
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
-import { decrypt, hmac, safeEqual } from 'lib/crypto';
+import { decrypt, keyedHash, safeEqual } from 'lib/crypto';
 import { DeliveryUnavailableError, otpDelivery, sendOtp } from 'lib/notify';
 import { requestOtpSchema } from 'lib/validation';
 import { withContact } from 'lib/rights';
@@ -56,7 +56,7 @@ export default withErrors(async (req, res) => {
           data: {
             dataPrincipalId: principal.id,
             channel: contact.channel,
-            codeHash: hmac(`${principal.id}:${code}`, 'SESSION_SECRET'),
+            codeHash: keyedHash(`${principal.id}:${code}`, 'otp'),
             expiresAt: new Date(Date.now() + OTP.ttlMinutes * 60 * 1000)
           }
         });

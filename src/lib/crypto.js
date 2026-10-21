@@ -40,12 +40,30 @@ export const decrypt = (payload) => {
   return Buffer.concat([decipher.update(Buffer.from(ciphertext, 'base64')), decipher.final()]).toString('utf8');
 };
 
-/** Keyed hash for values we must match but never store (IP addresses, OTPs). */
+/** Keyed hash for values we must match but never store (IP addresses, with IP_HASH_SALT). */
 export const hmac = (value, secretEnv = 'IP_HASH_SALT') => {
   const secret = process.env[secretEnv];
   if (!secret) throw new Error(`${secretEnv} is not set`);
   return crypto.createHmac('sha256', secret).update(String(value)).digest('hex');
 };
+
+/**
+ * A separate 32-byte key per purpose, derived from SESSION_SECRET with HKDF-SHA-256, so one
+ * secret is never used directly for two jobs (session signing, one-time-code hashing).
+ * @param {'rights-session' | 'otp'} purpose
+ */
+const derivedKeys = new Map();
+export const derivedKey = (purpose) => {
+  if (derivedKeys.has(purpose)) return derivedKeys.get(purpose);
+  const secret = process.env.SESSION_SECRET;
+  if (!secret) throw new Error('SESSION_SECRET is not set');
+  const key = Buffer.from(crypto.hkdfSync('sha256', secret, 'dpdp-dental-site', `v1:${purpose}`, 32));
+  derivedKeys.set(purpose, key);
+  return key;
+};
+
+/** HMAC-SHA-256 with a purpose-derived key. */
+export const keyedHash = (value, purpose) => crypto.createHmac('sha256', derivedKey(purpose)).update(String(value)).digest('hex');
 
 /** Constant-time string comparison. */
 export const safeEqual = (a, b) => {

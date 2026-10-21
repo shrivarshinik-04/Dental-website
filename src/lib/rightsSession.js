@@ -6,15 +6,11 @@
 import crypto from 'crypto';
 import { OTP } from 'config/compliance';
 import { appendCookie, parseCookies, serializeCookie } from './http';
-import { safeEqual } from './crypto';
+import { derivedKey, safeEqual } from './crypto';
 
 export const SESSION_COOKIE = 'dpdp_rights_session';
 
-const sign = (payload) => {
-  const secret = process.env.SESSION_SECRET;
-  if (!secret) throw new Error('SESSION_SECRET is not set');
-  return crypto.createHmac('sha256', secret).update(payload).digest('base64url');
-};
+const sign = (payload) => crypto.createHmac('sha256', derivedKey('rights-session')).update(payload).digest('base64url');
 
 export const startSession = (res, { dataPrincipalId, channel }) => {
   const payload = Buffer.from(

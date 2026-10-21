@@ -5,7 +5,7 @@
 import { OTP } from 'config/compliance';
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
-import { hmac, safeEqual } from 'lib/crypto';
+import { keyedHash, safeEqual } from 'lib/crypto';
 import { startSession } from 'lib/rightsSession';
 import { verifyOtpSchema } from 'lib/validation';
 import { withContact } from 'lib/rights';
@@ -30,7 +30,7 @@ export default withErrors(async (req, res) => {
   if (!challenge || challenge.attempts >= OTP.maxAttempts) return res.status(400).json(withContact({ error: INVALID }));
 
   const ipHash = hashedIp(req);
-  if (!safeEqual(hmac(`${principal.id}:${parsed.data.code}`, 'SESSION_SECRET'), challenge.codeHash)) {
+  if (!safeEqual(keyedHash(`${principal.id}:${parsed.data.code}`, 'otp'), challenge.codeHash)) {
     await prisma.otpChallenge.update({ where: { id: challenge.id }, data: { attempts: { increment: 1 } } });
     await audit({ actor: 'public', action: 'OTP_FAILED', entity: 'OtpChallenge', entityId: challenge.id, ipHash });
     return res.status(400).json(withContact({ error: INVALID }));
