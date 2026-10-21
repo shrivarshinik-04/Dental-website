@@ -66,6 +66,7 @@ const checkData = async (prisma, { key }) => {
 
   const principals = await prisma.dataPrincipal.findMany({ include: { appointments: true } });
   const appointments = await prisma.appointment.findMany();
+  const guardians = await prisma.guardian.findMany();
   const consents = await prisma.consentRecord.findMany({ include: { noticeVersion: { select: { language: true } } } });
   const notices = await prisma.noticeVersion.findMany();
   const grievances = await prisma.grievance.findMany();
@@ -110,30 +111,36 @@ const checkData = async (prisma, { key }) => {
   }
 
   // ---- Bookings (booking form) ----
-  const bookings = check('Bookings: encrypted, guardian details only for under-18 patients');
+  const bookings = check('Bookings: encrypted and complete; a guardian record for every under-18 booking');
+  const guardianByBooking = new Map(guardians.map((g) => [g.appointmentId, g]));
   for (const a of appointments) {
     bookings.count();
     const service = open(bookings, a.id, 'service', a.service);
     open(bookings, a.id, 'notes', a.notes);
-    const guardian = {
-      name: open(bookings, a.id, 'guardianName', a.guardianName),
-      relationship: open(bookings, a.id, 'guardianRelationship', a.guardianRelationship),
-      phone: open(bookings, a.id, 'guardianPhone', a.guardianPhone),
-      email: open(bookings, a.id, 'guardianEmail', a.guardianEmail)
-    };
     if (!service?.trim()) bookings.error(a.id, 'service missing');
     if (!['MORNING', 'EVENING'].includes(a.preferredSlot)) bookings.error(a.id, 'time slot is not MORNING or EVENING');
     if (a.status === 'COMPLETED' && !a.completedAt) bookings.error(a.id, 'completed without a completion time');
-    if (!a.patientIsMinor) {
-      if (a.guardianName || a.guardianRelationship || a.guardianPhone || a.guardianEmail) bookings.error(a.id, 'adult booking holds guardian details');
-      continue;
-    }
-    if (!guardian.name?.trim()) bookings.error(a.id, 'under-18 booking without the guardian\'s name');
-    if (LEGACY_RELATIONSHIPS.includes(guardian.relationship)) bookings.warn(a.id, 'older relationship value (Mother/Father)');
-    else if (!RELATIONSHIPS.includes(guardian.relationship)) bookings.error(a.id, 'guardian relationship missing or not Parent / Legal guardian');
-    if (!guardian.phone) bookings.warn(a.id, 'under-18 booking without the guardian\'s mobile (made before it was asked)');
-    else if (!PHONE.test(guardian.phone)) bookings.error(a.id, 'guardian mobile is not a 10-digit Indian mobile number');
-    if (guardian.email !== null && !EMAIL.test(guardian.email)) bookings.error(a.id, 'guardian email is not a valid lower-case address');
+    if (a.patientIsMinor && !guardianByBooking.has(a.id)) bookings.error(a.id, 'under-18 booking without a guardian record');
+  }
+
+  // ---- Guardians (booking form, under 18; correction form) ----
+  const guardianCheck = check('Guardians: separate table, encrypted, one per under-18 booking of the same patient');
+  const bookingById = new Map(appointments.map((a) => [a.id, a]));
+  for (const g of guardians) {
+    guardianCheck.count();
+    const name = open(guardianCheck, g.id, 'name', g.name);
+    const relationship = open(guardianCheck, g.id, 'relationship', g.relationship);
+    const phone = open(guardianCheck, g.id, 'phone', g.phone);
+    const email = open(guardianCheck, g.id, 'email', g.email);
+    const booking = bookingById.get(g.appointmentId);
+    if (!booking?.patientIsMinor) guardianCheck.error(g.id, 'linked to a booking that is not for a patient under 18');
+    if (booking && booking.dataPrincipalId !== g.dataPrincipalId) guardianCheck.error(g.id, 'patient differs from the booking\'s patient');
+    if (!name?.trim()) guardianCheck.error(g.id, 'name missing');
+    if (LEGACY_RELATIONSHIPS.includes(relationship)) guardianCheck.warn(g.id, 'older relationship value (Mother/Father)');
+    else if (!RELATIONSHIPS.includes(relationship)) guardianCheck.error(g.id, 'relationship missing or not Parent / Legal guardian');
+    if (!phone) guardianCheck.warn(g.id, 'no mobile number (booking made before it was asked)');
+    else if (!PHONE.test(phone)) guardianCheck.error(g.id, 'mobile is not a 10-digit Indian mobile number');
+    if (email !== null && !EMAIL.test(email)) guardianCheck.error(g.id, 'email is not a valid lower-case address');
   }
 
   // ---- Consent behind each booking ----
@@ -156,7 +163,6 @@ const checkData = async (prisma, { key }) => {
 
   // ---- Consent ledger (booking form, cookie banner, Data Rights page) ----
   const ledger = check('Consent ledger: who, what, how and which notice');
-  const appointmentById = new Map(appointments.map((a) => [a.id, a]));
   for (const c of consents) {
     ledger.count();
     if (Boolean(c.dataPrincipalId) === Boolean(c.anonymousId)) ledger.error(c.id, 'must belong to either a person or a browser ID, not both or neither');
@@ -173,7 +179,7 @@ const checkData = async (prisma, { key }) => {
     if (c.language !== c.noticeVersion.language) ledger.error(c.id, 'language differs from the notice version it points to');
     if (c.ipHash !== null && !HEX64.test(c.ipHash)) ledger.error(c.id, 'IP is not stored as a hash');
     if (c.appointmentId) {
-      const a = appointmentById.get(c.appointmentId);
+      const a = bookingById.get(c.appointmentId);
       if (!a || a.dataPrincipalId !== c.dataPrincipalId || !a.patientIsMinor || !c.givenByGuardian)
         ledger.error(c.id, 'linked booking is not this person\'s booking for a patient under 18');
     }

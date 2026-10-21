@@ -32,7 +32,7 @@ export default withErrors(async (req, res) => {
   if (!parsed.success) return res.status(400).json(withContact({ error: 'Enter your reference ID and a valid mobile number or email.' }));
 
   const { referenceId, contact } = parsed.data;
-  const principal = await prisma.dataPrincipal.findUnique({ where: { referenceId }, include: { appointments: true } });
+  const principal = await prisma.dataPrincipal.findUnique({ where: { referenceId }, include: { appointments: { include: { guardian: true } } } });
   let demoCode;
 
   if (principal && !principal.erasedAt) {

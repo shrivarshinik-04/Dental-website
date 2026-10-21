@@ -108,13 +108,13 @@ export const getServerSideProps = adminProps('appointments', async ({ req, res }
   const rows = await prisma.appointment.findMany({
     orderBy: { preferredDate: 'desc' },
     take: 200,
-    include: { dataPrincipal: { select: { referenceId: true, name: true, phone: true } } }
+    include: { dataPrincipal: { select: { referenceId: true, name: true, phone: true } }, guardian: true }
   });
   // Viewing a parent or guardian's details is logged separately from the booking itself.
-  const minors = rows.filter((r) => r.patientIsMinor);
-  if (minors.length) {
+  const guardians = rows.map((r) => r.guardian).filter(Boolean);
+  if (guardians.length) {
     const ipHash = hashedIp(req);
-    await auditMany(minors.map((r) => ({ actor: `admin:${admin.username}`, action: 'READ', entity: 'GuardianDetails', entityId: r.id, ipHash })));
+    await auditMany(guardians.map((g) => ({ actor: `admin:${admin.username}`, action: 'READ', entity: 'Guardian', entityId: g.id, ipHash })));
   }
   return {
     entity: 'Appointment',
@@ -130,10 +130,10 @@ export const getServerSideProps = adminProps('appointments', async ({ req, res }
         service: decrypt(a.service),
         reason: decrypt(a.notes),
         patientIsMinor: a.patientIsMinor,
-        guardianName: decrypt(a.guardianName),
-        guardianRelationship: decrypt(a.guardianRelationship),
-        guardianPhone: decrypt(a.guardianPhone),
-        guardianEmail: decrypt(a.guardianEmail),
+        guardianName: decrypt(a.guardian?.name),
+        guardianRelationship: decrypt(a.guardian?.relationship),
+        guardianPhone: decrypt(a.guardian?.phone),
+        guardianEmail: decrypt(a.guardian?.email),
         status: a.status,
         legallyRequired: a.legallyRequired
       }))

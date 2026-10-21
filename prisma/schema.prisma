@@ -134,35 +134,52 @@ model DataPrincipal {
   rightsRequests RightsRequest[]
   grievances     Grievance[]
   otpChallenges  OtpChallenge[]
+  guardians      Guardian[]
 }
 
 model Appointment {
-  id                   String            @id @default(cuid())
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  dataPrincipalId      String
-  dataPrincipal        DataPrincipal     @relation(fields: [dataPrincipalId], references: [id], onDelete: Cascade)
-  preferredDate        DateTime
-  preferredSlot        String // e.g. "MORNING" / "EVENING"
-  service              String // encrypted (reveals dental condition)
-  notes                String? // encrypted (reason for visit)
-  patientIsMinor       Boolean           @default(false)
-  // Parent or guardian of a patient under 18 (all encrypted). Their mobile/email is used
-  // for confirmations and rights-portal one-time codes instead of the patient's.
-  guardianName         String? // encrypted
-  guardianRelationship String? // encrypted (PARENT / LEGAL_GUARDIAN; older rows MOTHER / FATHER)
-  guardianPhone        String? // encrypted
-  guardianEmail        String? // encrypted
-  status               AppointmentStatus @default(REQUESTED)
-  consents             ConsentRecord[]
+  id              String            @id @default(cuid())
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  dataPrincipalId String
+  dataPrincipal   DataPrincipal     @relation(fields: [dataPrincipalId], references: [id], onDelete: Cascade)
+  preferredDate   DateTime
+  preferredSlot   String // e.g. "MORNING" / "EVENING"
+  service         String // encrypted (reveals dental condition)
+  notes           String? // encrypted (reason for visit)
+  patientIsMinor  Boolean           @default(false)
+  // Parent or guardian, for a patient under 18 only (separate table, see Guardian).
+  guardian        Guardian?
+  status          AppointmentStatus @default(REQUESTED)
+  consents        ConsentRecord[]
   // Set by clinic staff once the visit forms part of the clinical record that
   // must be retained by law. Blocks erasure (s.8(7) "unless retention is necessary
   // for compliance with any law"). See RETENTION.clinicalRecordDays.
-  legallyRequired      Boolean           @default(false)
-  completedAt          DateTime?
+  legallyRequired Boolean           @default(false)
+  completedAt     DateTime?
 
   @@index([dataPrincipalId])
   @@index([status, preferredDate])
+}
+
+// Parent or guardian who booked for a patient under 18 and gave consent on their behalf.
+// One per booking (the declaration is made per booking), linked to the patient's record
+// (reference ID) and deleted with the booking. Their mobile/email is used for one-time codes
+// and by staff to confirm, instead of the patient's. All personal fields encrypted.
+model Guardian {
+  id              String        @id @default(cuid())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  appointmentId   String        @unique
+  appointment     Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  dataPrincipalId String // the patient
+  dataPrincipal   DataPrincipal @relation(fields: [dataPrincipalId], references: [id], onDelete: Cascade)
+  name            String // encrypted
+  relationship    String // encrypted (PARENT / LEGAL_GUARDIAN; older rows MOTHER / FATHER)
+  phone           String? // encrypted (null only on bookings made before it was asked)
+  email           String? // encrypted
+
+  @@index([dataPrincipalId])
 }
 
 // Short-lived one-time codes for verifying the Data Principal (Rule 14(1)).

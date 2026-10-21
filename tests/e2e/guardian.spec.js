@@ -31,7 +31,7 @@ const pressRadio = async (page, selector) => {
 };
 
 const appointmentFor = async (referenceId) =>
-  db().appointment.findFirst({ where: { dataPrincipal: { referenceId } }, orderBy: { createdAt: 'desc' } });
+  db().appointment.findFirst({ where: { dataPrincipal: { referenceId } }, orderBy: { createdAt: 'desc' }, include: { guardian: true } });
 
 test('section is hidden by default, appears for a minor (announced, focus moved) and is cleared when switched back to adult', async ({ browser, baseURL }) => {
   const ctx = await newContext(browser);
@@ -155,9 +155,12 @@ test('keyboard-only minor booking at 375px: no overflow, labelled fields, consen
   expect([principal.phone, principal.email]).toEqual([null, null]);
   const appt = await appointmentFor(ref);
   expect(appt.patientIsMinor).toBe(true);
-  for (const field of ['guardianName', 'guardianRelationship', 'guardianPhone', 'guardianEmail']) {
-    expect(appt[field], field).toMatch(/^v1:/);
-    expect(appt[field]).not.toContain(g[field]);
+  // Guardian details are in their own table, linked to the booking and the patient; none on the booking itself.
+  expect(Object.keys(appt).filter((k) => k.startsWith('guardian') && k !== 'guardian')).toEqual([]);
+  expect([appt.guardian.appointmentId, appt.guardian.dataPrincipalId]).toEqual([appt.id, principal.id]);
+  for (const [column, field] of [['name', 'guardianName'], ['relationship', 'guardianRelationship'], ['phone', 'guardianPhone'], ['email', 'guardianEmail']]) {
+    expect(appt.guardian[column], column).toMatch(/^v1:/);
+    expect(appt.guardian[column]).not.toContain(g[field]);
   }
 
   // Consent given by the guardian, linked to the booking, against the current notice.
@@ -196,7 +199,8 @@ test('server: field-level 400s for a minor without guardian details; an adult\'s
   expect(adult.status).toBe(201);
   const appt = await appointmentFor(adult.referenceId);
   expect(appt.patientIsMinor).toBe(false);
-  expect([appt.guardianName, appt.guardianRelationship, appt.guardianPhone, appt.guardianEmail]).toEqual([null, null, null, null]);
+  expect(appt.guardian).toBeNull(); // no guardian record for an adult
+  expect(await db().guardian.count({ where: { dataPrincipalId: appt.dataPrincipalId } })).toBe(0);
   const consent = await db().consentRecord.findFirst({ where: { dataPrincipal: { referenceId: adult.referenceId } } });
   expect([consent.givenByGuardian, consent.appointmentId]).toEqual([false, null]);
   await ctx.close();
@@ -213,7 +217,7 @@ test('rights portal: one-time code to the guardian, details shown, corrected and
   // Staff viewing the booking list is logged as a view of the guardian's details.
   const admin = await newContext(browser, { httpCredentials: ADMIN });
   expect((await admin.request.get('/admin/appointments')).status()).toBe(200);
-  const viewed = await db().auditLog.findFirst({ where: { entity: 'GuardianDetails', entityId: appt.id, action: 'READ' } });
+  const viewed = await db().auditLog.findFirst({ where: { entity: 'Guardian', entityId: appt.guardian.id, action: 'READ' } });
   expect(viewed.actor).toBe(`admin:${ADMIN.username}`);
   await admin.close();
 
@@ -246,8 +250,8 @@ test('rights portal: one-time code to the guardian, details shown, corrected and
   await page.getByRole('button', { name: 'Save changes' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Done' })).toBeVisible();
   const corrected = await appointmentFor(booked.referenceId);
-  expect(corrected.guardianPhone).toMatch(/^v1:/);
-  expect(corrected.guardianPhone).not.toBe(appt.guardianPhone);
+  expect(corrected.guardian.phone).toMatch(/^v1:/);
+  expect(corrected.guardian.phone).not.toBe(appt.guardian.phone);
   const request = await db().rightsRequest.findFirst({ where: { dataPrincipalId: appt.dataPrincipalId, type: 'CORRECTION' } });
   expect(request).not.toBeNull();
   const other = await newContext(browser);
@@ -258,6 +262,7 @@ test('rights portal: one-time code to the guardian, details shown, corrected and
   const erased = await ctx.request.post('/api/rights/erase', { data: { confirm: true, language: 'en' }, headers: { Origin: baseURL } });
   expect(erased.status()).toBe(200);
   expect(await db().appointment.count({ where: { id: appt.id } })).toBe(0);
+  expect(await db().guardian.count({ where: { id: appt.guardian.id } })).toBe(0); // deleted with the booking
   const consent = await db().consentRecord.findFirst({ where: { dataPrincipalId: appt.dataPrincipalId } });
   expect(consent.appointmentId).toBeNull(); // proof of consent kept, link to the deleted booking cleared
   const again = await newContext(browser);

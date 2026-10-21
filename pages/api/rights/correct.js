@@ -11,7 +11,8 @@ import { principalRoute } from 'lib/rightsApi';
 import { buildSummary, isMinorOnly, loadPrincipal, recordRequest, verificationMethod, withContact } from 'lib/rights';
 
 const PERSON_FIELDS = ['name', 'phone', 'email'];
-const GUARDIAN_FIELDS = ['guardianName', 'guardianPhone', 'guardianEmail'];
+// Form field → Guardian column.
+const GUARDIAN_FIELDS = { guardianName: 'name', guardianPhone: 'phone', guardianEmail: 'email' };
 
 export default principalRoute(['POST'], async (req, res, { session, principal, ipHash, actor }) => {
   const parsed = correctionSchema.safeParse(req.body);
@@ -20,8 +21,8 @@ export default principalRoute(['POST'], async (req, res, { session, principal, i
   const { type, ...fields } = parsed.data;
   const pick = (keys) => Object.fromEntries(keys.filter((k) => fields[k] !== undefined).map((k) => [k, encrypt(fields[k])]));
   const personChanges = pick(PERSON_FIELDS);
-  const guardianChanges = pick(GUARDIAN_FIELDS);
-  const minorBookings = principal.appointments.filter((a) => a.patientIsMinor).map((a) => a.id);
+  const guardianChanges = pick(Object.keys(GUARDIAN_FIELDS));
+  const hasGuardians = principal.appointments.some((a) => a.guardian);
   const changed = [...Object.keys(personChanges), ...Object.keys(guardianChanges)];
 
   if (!changed.length) return res.status(400).json(withContact({ error: 'Nothing to change.' }));
@@ -31,14 +32,16 @@ export default principalRoute(['POST'], async (req, res, { session, principal, i
     return res
       .status(400)
       .json(withContact({ error: "For a patient under 18 we keep the parent or guardian's contact details instead.", fields: ['phone', 'email'] }));
-  if (Object.keys(guardianChanges).length && !minorBookings.length)
+  if (Object.keys(guardianChanges).length && !hasGuardians)
     return res.status(400).json(withContact({ error: 'There are no bookings for a patient under 18 on this record.' }));
   if (guardianChanges.guardianPhone === null) return res.status(400).json(withContact({ error: "The guardian's mobile number is required." }));
 
   await prisma.$transaction(async (tx) => {
     if (Object.keys(personChanges).length) await tx.dataPrincipal.update({ where: { id: principal.id }, data: personChanges });
-    if (Object.keys(guardianChanges).length)
-      await tx.appointment.updateMany({ where: { id: { in: minorBookings } }, data: guardianChanges });
+    if (Object.keys(guardianChanges).length) {
+      const data = Object.fromEntries(Object.entries(guardianChanges).map(([field, value]) => [GUARDIAN_FIELDS[field], value]));
+      await tx.guardian.updateMany({ where: { dataPrincipalId: principal.id }, data });
+    }
     // Store which fields changed, not their values.
     await recordRequest(tx, { principal, type, method: verificationMethod(session), payload: { fields: changed } });
     await audit({ actor, action: 'UPDATE', entity: 'DataPrincipal', entityId: principal.id, ipHash, detail: changed.join(',') }, tx);

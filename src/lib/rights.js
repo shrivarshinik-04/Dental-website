@@ -33,7 +33,7 @@ export const loadPrincipal = async (id, client = prisma) => {
   const principal = await client.dataPrincipal.findUnique({
     where: { id },
     include: {
-      appointments: { orderBy: { preferredDate: 'desc' } },
+      appointments: { orderBy: { preferredDate: 'desc' }, include: { guardian: true } },
       consents: { orderBy: { timestamp: 'asc' }, include: { noticeVersion: { select: { version: true } } } },
       rightsRequests: { orderBy: { createdAt: 'desc' }, take: 20 },
       grievances: { orderBy: { createdAt: 'desc' }, take: 20 }
@@ -52,7 +52,7 @@ export const loadPrincipal = async (id, client = prisma) => {
 /**
  * Contact details that can receive confirmations and one-time codes for a person: their own
  * mobile/email and, for bookings of a patient under 18, the parent or guardian's.
- * @param principal DataPrincipal with `appointments` loaded
+ * @param principal DataPrincipal with `appointments` (and their `guardian`) loaded
  * @returns {{ channel: 'phone' | 'email', value: string, role: 'patient' | 'guardian' }[]}
  */
 export const contactsFor = (principal) => {
@@ -64,10 +64,10 @@ export const contactsFor = (principal) => {
   add('phone', principal.phone, 'patient');
   add('email', principal.email, 'patient');
   (principal.appointments || [])
-    .filter((a) => a.patientIsMinor)
+    .filter((a) => a.patientIsMinor && a.guardian)
     .forEach((a) => {
-      add('phone', a.guardianPhone, 'guardian');
-      add('email', a.guardianEmail, 'guardian');
+      add('phone', a.guardian.phone, 'guardian');
+      add('email', a.guardian.email, 'guardian');
     });
   return list;
 };
@@ -103,10 +103,10 @@ export const buildSummary = (principal) => {
       service: decrypt(a.service),
       reason: decrypt(a.notes),
       patientIsMinor: a.patientIsMinor,
-      guardianName: decrypt(a.guardianName),
-      guardianRelationship: decrypt(a.guardianRelationship),
-      guardianPhone: decrypt(a.guardianPhone),
-      guardianEmail: decrypt(a.guardianEmail),
+      guardianName: decrypt(a.guardian?.name),
+      guardianRelationship: decrypt(a.guardian?.relationship),
+      guardianPhone: decrypt(a.guardian?.phone),
+      guardianEmail: decrypt(a.guardian?.email),
       status: a.status,
       legallyRequired: a.legallyRequired
     })),

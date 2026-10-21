@@ -34,7 +34,7 @@ const same = (a, b) => Boolean(a && b) && a.trim().toLowerCase() === b.trim().to
 const verifiedMatch = async (req, data) => {
   const session = readSession(req);
   if (!session) return null;
-  const principal = await prisma.dataPrincipal.findUnique({ where: { id: session.dataPrincipalId }, include: { appointments: true } });
+  const principal = await prisma.dataPrincipal.findUnique({ where: { id: session.dataPrincipalId }, include: { appointments: { include: { guardian: true } } } });
   if (!principal || principal.erasedAt) return null;
   const nameMatches = same(decrypt(principal.name), data.name);
   // Adults match on their own contact; a child's booking matches on the guardian's contact.
@@ -98,12 +98,21 @@ export default withErrors(async (req, res) => {
         service: encrypt(data.service),
         notes: encrypt(data.reason),
         patientIsMinor: isMinor,
-        // Already null for adults (discarded by the schema), encrypted for minors.
-        guardianName: encrypt(data.guardianName),
-        guardianRelationship: encrypt(data.guardianRelationship),
-        guardianPhone: encrypt(data.guardianPhone),
-        guardianEmail: encrypt(data.guardianEmail)
-      }
+        // Parent or guardian details go to their own table, only for a patient under 18
+        // (the schema has already discarded them for adults).
+        ...(isMinor && {
+          guardian: {
+            create: {
+              dataPrincipalId: principal.id,
+              name: encrypt(data.guardianName),
+              relationship: encrypt(data.guardianRelationship),
+              phone: encrypt(data.guardianPhone),
+              email: encrypt(data.guardianEmail)
+            }
+          }
+        })
+      },
+      include: { guardian: { select: { id: true } } }
     });
 
     // Only the appointment purpose is offered. Reminder and marketing consents were removed
@@ -129,6 +138,7 @@ export default withErrors(async (req, res) => {
       [
         ...(existing ? [] : [{ entity: 'DataPrincipal', entityId: principal.id }]),
         { entity: 'Appointment', entityId: appointment.id, detail: existing ? 'returning patient (verified)' : undefined },
+        ...(appointment.guardian ? [{ entity: 'Guardian', entityId: appointment.guardian.id }] : []),
         { entity: 'ConsentRecord', entityId: principal.id, detail: purposes.map(([p, g]) => `${p}=${g ? 'GIVEN' : 'DENIED'}`).join(',') }
       ].map((e) => ({ ...e, actor: 'public', action: 'CREATE', ipHash })),
       tx
