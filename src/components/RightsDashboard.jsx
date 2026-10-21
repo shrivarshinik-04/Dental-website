@@ -39,7 +39,9 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
     ...summary.personalData,
     ...(guardian && { guardianName: guardian.guardianName, guardianPhone: guardian.guardianPhone, guardianEmail: guardian.guardianEmail })
   };
-  const profileFields = guardian ? [...PERSON_FIELDS, ...GUARDIAN_FIELDS] : PERSON_FIELDS;
+  // For a patient under 18 only the patient's name and the guardian's details can be changed.
+  const minorOnly = summary.appointments.length > 0 && summary.appointments.every((a) => a.patientIsMinor);
+  const profileFields = minorOnly ? ['name', ...GUARDIAN_FIELDS] : guardian ? [...PERSON_FIELDS, ...GUARDIAN_FIELDS] : PERSON_FIELDS;
   const [profile, setProfile] = useState(Object.fromEntries(profileFields.map((f) => [f, current[f] || ''])));
   const [nominee, setNominee] = useState({ name: '', relationship: '', contact: '' });
   const [eraseConfirm, setEraseConfirm] = useState(false);

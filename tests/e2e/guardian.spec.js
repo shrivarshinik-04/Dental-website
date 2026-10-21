@@ -232,6 +232,13 @@ test('rights portal: one-time code to the guardian, details shown, corrected and
   await expect(page.getByRole('heading', { name: 'Your data', exact: true })).toBeVisible();
   await expect(page.getByRole('cell', { name: new RegExp(`Test Guardian \\(Parent\\), ${g.guardianPhone}, ${g.guardianEmail}`) })).toBeVisible();
 
+  // The patient's own phone and email are not kept for a patient under 18, so they cannot be added here.
+  await expect(page.locator('#profile-phone')).toHaveCount(0);
+  await expect(page.locator('#profile-email')).toHaveCount(0);
+  const own = await ctx.request.post('/api/rights/correct', { data: { type: 'COMPLETION', phone: testPhone() }, headers: { Origin: baseURL } });
+  expect(own.status()).toBe(400);
+  expect((await db().dataPrincipal.findUnique({ where: { id: appt.dataPrincipalId } })).phone).toBeNull();
+
   // Correct the guardian's mobile; the new number then works for sign-in.
   const newPhone = testPhone();
   await expect(page.locator('#profile-guardianPhone')).toHaveValue(g.guardianPhone);

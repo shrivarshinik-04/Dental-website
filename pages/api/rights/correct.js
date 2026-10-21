@@ -8,7 +8,7 @@ import { audit } from 'lib/audit';
 import { encrypt } from 'lib/crypto';
 import { correctionSchema, fieldErrors } from 'lib/validation';
 import { principalRoute } from 'lib/rightsApi';
-import { buildSummary, loadPrincipal, recordRequest, verificationMethod, withContact } from 'lib/rights';
+import { buildSummary, isMinorOnly, loadPrincipal, recordRequest, verificationMethod, withContact } from 'lib/rights';
 
 const PERSON_FIELDS = ['name', 'phone', 'email'];
 const GUARDIAN_FIELDS = ['guardianName', 'guardianPhone', 'guardianEmail'];
@@ -26,6 +26,11 @@ export default principalRoute(['POST'], async (req, res, { session, principal, i
 
   if (!changed.length) return res.status(400).json(withContact({ error: 'Nothing to change.' }));
   if (personChanges.phone === null) return res.status(400).json(withContact({ error: 'A mobile number is required.' }));
+  // For a patient under 18 we keep the guardian's contact details, never the patient's own.
+  if (isMinorOnly(principal) && ('phone' in personChanges || 'email' in personChanges))
+    return res
+      .status(400)
+      .json(withContact({ error: "For a patient under 18 we keep the parent or guardian's contact details instead.", fields: ['phone', 'email'] }));
   if (Object.keys(guardianChanges).length && !minorBookings.length)
     return res.status(400).json(withContact({ error: 'There are no bookings for a patient under 18 on this record.' }));
   if (guardianChanges.guardianPhone === null) return res.status(400).json(withContact({ error: "The guardian's mobile number is required." }));

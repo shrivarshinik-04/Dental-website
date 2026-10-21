@@ -83,6 +83,9 @@ export const currentConsents = (consents) => {
 
 export const hasMinorAppointments = (principal) => principal.appointments.some((a) => a.patientIsMinor);
 
+/** Every booking on the record is for a patient under 18: the patient's own phone and email are not kept. */
+export const isMinorOnly = (principal) => principal.appointments.length > 0 && principal.appointments.every((a) => a.patientIsMinor);
+
 /** s.11(1)(a)–(c): summary of data, processing activities and who it was shared with. */
 export const buildSummary = (principal) => {
   const latest = currentConsents(principal.consents);
