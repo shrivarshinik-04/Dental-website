@@ -154,6 +154,8 @@ const DEFAULT_LANGUAGE = 'en';
 // publish, which may not exceed 90 days.
 // ---------------------------------------------------------------------------
 const MAX_GRIEVANCE_DAYS = 90;
+// The grievance due date is the earlier of this and one calendar month after receipt
+// (SPDI Rules 2011, Rule 5(9): "within one month"); see src/lib/deadlines.js.
 const GRIEVANCE_RESPONSE_DAYS = Math.min(30, MAX_GRIEVANCE_DAYS);
 const RIGHTS_RESPONSE_DAYS = Math.min(30, MAX_GRIEVANCE_DAYS);
 

@@ -15,7 +15,8 @@ import { alertContactPerson } from 'lib/notify';
 import { readSession } from 'lib/rightsSession';
 import { withContact } from 'lib/rights';
 import { contact as contactSchema, fieldErrors, grievanceSchema } from 'lib/validation';
-import { addDays, allowMethods, hashedIp, rateLimit, requireSameOrigin, withErrors } from 'lib/http';
+import { grievanceDueDate } from 'lib/deadlines';
+import { allowMethods, hashedIp, rateLimit, requireSameOrigin, withErrors } from 'lib/http';
 
 const escalationNote = (dueDate) =>
   `If you are not satisfied with our response, or do not receive one by ${dueDate.toISOString().slice(0, 10)}, ` +
@@ -42,8 +43,8 @@ export default withErrors(async (req, res) => {
     contactDetail = contact.data.value;
   }
 
-  const days = Math.min(GRIEVANCE_RESPONSE_DAYS, MAX_GRIEVANCE_DAYS);
-  const dueDate = addDays(new Date(), days);
+  // Earlier of the configured period and one calendar month (SPDI Rules 2011, Rule 5(9)).
+  const dueDate = grievanceDueDate(new Date(), Math.min(GRIEVANCE_RESPONSE_DAYS, MAX_GRIEVANCE_DAYS));
   const ipHash = hashedIp(req);
 
   const grievance = await prisma.$transaction(async (tx) => {
