@@ -107,3 +107,15 @@ Each commit: build passes; the affected flow is checked manually before moving o
 6. Clinical-record retention period.
 7. Data Protection Board official complaint URL.
 8. Real organisation details, hosting region, processors and contracts (all sample values until then).
+
+## 6. Decisions recorded (21 Oct 2026)
+
+| ID | Decision | Resulting scope |
+|---|---|---|
+| D1 | **B — keep the banner with a real analytics script** | Categories become **Strictly necessary**, **Functional** (`dpdp_lang`) and **Analytics**; "Marketing" is removed (D3). New first-party analytics: `public/js/analytics.js` (self-hosted, same origin, loaded only through `loadScriptIfConsented('analytics', …)`) sets cookie `dc_vid` (random ID, 12 months, analytics category) and sends page path, timestamp and referrer origin to `POST /api/analytics`. Stored in a new `AnalyticsEvent` table (visitor ID, path, referrer origin, timestamp; **no IP, no user agent**), retained 90 days by the retention job. Never runs on `NO_TRACKING_PATHS` or in a minor's session. **Withdrawal** deletes `dc_vid`, stops the script (page reload) and calls `DELETE /api/analytics` to erase that visitor's events. Admin page `/admin/analytics` shows aggregate counts only. Cookie register, cookie policy, notice and CSP (`connect-src 'self'` already sufficient) updated. Consent rows for the banner stay (they now evidence consent to real processing) |
+| D2 | **Connect the breach module** | Keep the admin register; add `INCIDENT_OWNER` (sample) in config, a **6-hour CERT-In clock** (now) beside the 72-hour DPDP Rule 7 clock (labelled "from May 2027"), a CERT-In report draft (incident type per Annexure I, time noticed, systems, contact), a `certInReportedAt` field (additive migration), and links to `docs/BREACH-RESPONSE.md`, which names the owner, escalation steps and evidence preservation |
+| D3 | **Remove reminder and marketing consents** | Booking form keeps only the required appointment consent; purposes `APPOINTMENT_REMINDERS_SMS_WHATSAPP` and `MARKETING` removed from the form, API, validation, locales, rights dashboard and policy. Enum values are kept so existing ledger rows remain readable (no destructive migration) |
+| D4 | **Create minimal pages** | `pages/about.jsx`, `pages/contact.jsx` (sample details from config, no form), `pages/services.jsx` (one anchor per service), `pages/sitemap.jsx`; Gallery removed from nav and footer; every nav/footer item gets a real `href` |
+| D5 | Not answered — default **merge Nomination into RightsRequest** (P3.3) unless you object | — |
+
+Dependency impact of the decisions: none (the analytics script is local code, not a package).
