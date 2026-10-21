@@ -172,7 +172,7 @@
     "correctHeading": "Correct, complete or update your details",
     "save": "Save changes",
     "eraseHeading": "Erase your data",
-    "eraseIntro": "We will erase everything we are not required by law to keep. Download your data first if you want a copy. If all your data is erased you will no longer be able to sign in here.",
+    "eraseIntro": "We will erase everything we are not required by law to keep. Download your data first if you want a copy. If all your data is erased you will no longer be able to sign in here. Copies in backups expire on the backup schedule and are not restored for normal use.",
     "eraseConfirm": "I understand and want my data erased.",
     "erase": "Erase my data",
     "nominateHeading": "Nominate someone",

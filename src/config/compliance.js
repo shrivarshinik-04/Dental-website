@@ -169,27 +169,37 @@ const RIGHTS_RESPONSE_DAYS = Math.min(30, MAX_GRIEVANCE_DAYS);
 // ---------------------------------------------------------------------------
 const ONE_YEAR = 365;
 const MIN_LOG_RETENTION_DAYS = ONE_YEAR;
+// Sources: SPDI Rules 2011, Rule 5(4) (in force): keep sensitive data no longer than needed
+// for the purpose or required by another law. DPDP Act s.8(7) and DPDP Rules 6(1)(e), 8(3)
+// (from about May 2027). All periods are project settings, not legal advice; see
+// docs/RETENTION.md.
 const RETENTION = {
-  // Booking data is kept this long after the preferred date (or after
-  // cancellation/withdrawal) when the visit did not become a clinical record.
+  // Purpose served: booking data kept this long after the preferred date (or after
+  // cancellation / withdrawal) when the visit did not become a clinical record. [Design choice]
   appointmentAfterVisitDays: 30,
-  // [CONFIRM WITH COUNSEL] Retention period for appointments marked as part of the
-  // clinical record. Confirm against the Dental Council of India / state clinical
-  // establishment rules, medico-legal limitation periods and any other law that
-  // applies to the clinic. 3 years is a placeholder, not legal advice.
+  // [NEEDS LEGAL CONFIRMATION] Appointments marked as part of the clinical record. Confirm
+  // against the Dental Council of India / state clinical-establishment rules and limitation
+  // periods. 3 years is a placeholder.
   clinicalRecordDays: 3 * ONE_YEAR,
-  // Proof of consent (s.6(10)). Kept after the relationship ends to answer
-  // disputes.
+  // Proof of consent: SPDI Rule 5 now; DPDP s.6(10) later. [Design choice]
   consentRecordDays: 3 * ONE_YEAR,
-  // Rule 6(1)(e) + Rule 8(3): logs for at least one year.
+  // Access logs: CERT-In Directions (iv) 180 days (in force, all ICT systems); DPDP Rules 6(1)(e)
+  // and 8(3) one year (from about May 2027). The job never deletes logs younger than
+  // MIN_LOG_RETENTION_DAYS.
   auditLogDays: ONE_YEAR,
-  // Closed rights requests and grievances.
+  // Closed rights requests and grievances. [Design choice]
   requestRecordDays: 3 * ONE_YEAR,
-  // Expired one-time codes.
+  // Expired one-time codes. [Design choice]
   otpDays: 1,
-  // First-party analytics events (only collected with analytics consent).
+  // First-party analytics events (only with analytics consent; erased on withdrawal). [Design choice]
   analyticsEventDays: 90
 };
+
+// [NEEDS LEGAL CONFIRMATION — off until confirmed] DPDP Rules 2025, Rule 8(3) (from about
+// May 2027): keep personal data, traffic data and logs of processing for at least one year
+// from the processing. When enabled, the retention job keeps booking data at least `days`
+// from when it was collected, even after the purpose is served.
+const PROCESSING_RECORD_HOLD = { enabled: false, days: ONE_YEAR };
 
 const OTP = {
   ttlMinutes: 10,
@@ -290,6 +300,7 @@ module.exports = {
   GRIEVANCE_RESPONSE_DAYS,
   RIGHTS_RESPONSE_DAYS,
   RETENTION,
+  PROCESSING_RECORD_HOLD,
   MIN_LOG_RETENTION_DAYS,
   OTP,
   PURPOSES,

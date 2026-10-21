@@ -3,17 +3,17 @@
  *   15 2 * * *  cd /srv/clinic && node scripts/retention.js >> /var/log/clinic-retention.log 2>&1
  * Use --dry-run to see what would be erased without changing anything.
  *
- * DPDP Act 2023, s.8(7): erase personal data once the purpose is served or consent is
- * withdrawn (whichever is earlier), unless retention is necessary to comply with law,
- * and have Data Processors erase their copies too.
- * DPDP Rules 2025, Rule 6(1)(e) and Rule 8(3): keep logs for at least one year. This
- * script never deletes audit logs, consent records or request records younger than
- * MIN_LOG_RETENTION_DAYS, whatever RETENTION says.
+ * Now: SPDI Rules 2011, Rule 5(4) — do not keep sensitive personal data longer than needed
+ * for the purpose or required by another law. From about May 2027: DPDP Act s.8(7) (erase
+ * when the purpose is served or consent is withdrawn; processors too) and DPDP Rules 6(1)(e)
+ * and 8(3) (keep logs at least one year; optional hold in PROCESSING_RECORD_HOLD).
+ * This script never deletes audit logs, consent records or request records younger than
+ * MIN_LOG_RETENTION_DAYS, whatever RETENTION says. See docs/RETENTION.md.
  *
  * Periods are set in src/config/compliance.js (RETENTION). Logs only counts and IDs.
  */
 const { PrismaClient } = require('@prisma/client');
-const { RETENTION, MIN_LOG_RETENTION_DAYS } = require('../src/config/compliance');
+const { RETENTION, MIN_LOG_RETENTION_DAYS, PROCESSING_RECORD_HOLD } = require('../src/config/compliance');
 
 const prisma = new PrismaClient();
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -51,17 +51,23 @@ const latestStatus = (consents, purpose) =>
 async function main() {
   console.log(`[retention] start ${new Date().toISOString()}${DRY_RUN ? ' (dry run)' : ''}`);
 
+  // Optional one-year hold for DPDP Rules 8(3) (off until legally confirmed).
+  const hold = PROCESSING_RECORD_HOLD.enabled ? { createdAt: { lt: before(PROCESSING_RECORD_HOLD.days) } } : {};
+  if (PROCESSING_RECORD_HOLD.enabled) console.log(`[retention] processing-record hold on: keeping booking data ${PROCESSING_RECORD_HOLD.days} days`);
+
   // 1. Purpose served: the visit date has passed and it is not part of the clinical record.
   await deleteAppointments('purpose served', {
     legallyRequired: false,
-    preferredDate: { lt: before(RETENTION.appointmentAfterVisitDays) }
+    preferredDate: { lt: before(RETENTION.appointmentAfterVisitDays) },
+    ...hold
   });
 
-  // 2. Cancelled, including cancellations caused by consent withdrawal (s.6(6)).
+  // 2. Cancelled, including cancellations caused by consent withdrawal.
   await deleteAppointments('cancelled / consent withdrawn', {
     legallyRequired: false,
     status: 'CANCELLED',
-    updatedAt: { lt: before(RETENTION.appointmentAfterVisitDays) }
+    updatedAt: { lt: before(RETENTION.appointmentAfterVisitDays) },
+    ...hold
   });
 
   // 3. Clinical records past their legal retention period.
