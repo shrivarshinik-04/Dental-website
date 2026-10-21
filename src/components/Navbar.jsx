@@ -73,30 +73,19 @@ const Navbar = ({
               <NextLink href="/" title="Home" className="nav-link" />
             </li>
             <li className="nav-item" data-bs-dismiss="offcanvas">
-              <NextLink href="#" title="About Us" className="nav-link" />
+              <NextLink href="/about" title="About Us" className="nav-link" />
             </li>
             <li className="nav-item dropdown">
-              <DropdownToggleLink
-                title="Services"
-                href="#"
-                className="nav-link dropdown-toggle"
-              />
+              <DropdownToggleLink title="Services" className="nav-link dropdown-toggle" />
               <ul className="dropdown-menu" data-bs-dismiss="offcanvas">
-                {services.map(({ id, title }) => (
-                  <ListItemLink
-                    key={id}
-                    href="#"
-                    title={title}
-                    linkClassName="dropdown-item"
-                  />
+                <ListItemLink href="/services" title="All services" linkClassName="dropdown-item" />
+                {services.map(({ id, title, href }) => (
+                  <ListItemLink key={id} href={href} title={title} linkClassName="dropdown-item" />
                 ))}
               </ul>
             </li>
             <li className="nav-item" data-bs-dismiss="offcanvas">
-              <NextLink href="#" title="Gallery" className="nav-link" />
-            </li>
-            <li className="nav-item" data-bs-dismiss="offcanvas">
-              <NextLink href="#" title="Contact Us" className="nav-link" />
+              <NextLink href="/contact" title="Contact Us" className="nav-link" />
             </li>
             <li
               className="nav-item align-items-center d-flex mt-2 mt-lg-0 ms-lg-4 merriweather"

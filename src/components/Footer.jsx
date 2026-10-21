@@ -21,7 +21,7 @@ const renderWidget = (list, title) => (
     <ul className="list-unstyled text-reset mb-0">
       {list.map(({ title, id, href }) => (
         <li key={id}>
-          <NextLink href={href || '#'} title={title} className="lato" />
+          <NextLink href={href} title={title} className="lato" />
         </li>
       ))}
     </ul>
