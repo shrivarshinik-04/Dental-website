@@ -146,14 +146,19 @@ const PrivacyPolicy = () => (
             <Section id="collect" title="What we collect">
               <h3 className="fs-18 merriweather text-title">Appointment request form</h3>
               <ul>
-                <li>Patient&apos;s name and mobile number; email address (optional)</li>
+                <li>Patient&apos;s name</li>
+                <li>For an adult patient: their mobile number and email address (optional)</li>
                 <li>
                   The service you want and, optionally, a short reason for your visit. This is health information,
                   which the law treats as <strong>sensitive</strong>: please do not enter detailed medical history; we
                   ask in person.
                 </li>
                 <li>Preferred date and time</li>
-                <li>If the patient is under 18: the parent or guardian&apos;s name and relationship, and their declaration</li>
+                <li>
+                  If the patient is under 18: the parent or guardian&apos;s full name, their relationship to the patient,
+                  their mobile number, their email address (optional) and their declaration. We use the guardian&apos;s
+                  mobile or email instead of the patient&apos;s, and do not ask for the patient&apos;s own.
+                </li>
                 <li>Proof of your consent: date and time, notice version, language, browser type and a one-way hash of your IP address (never the IP address itself)</li>
               </ul>
               <h3 className="fs-18 merriweather text-title">Cookie choices</h3>
@@ -183,7 +188,7 @@ const PrivacyPolicy = () => (
                 rows={[
                   [
                     'Booking and managing your appointment',
-                    'Name, mobile, email (optional), service, date and time, reason (optional), guardian details',
+                    'Name, mobile, email (optional), service, date and time, reason (optional); for a patient under 18, the guardian\'s details instead of the patient\'s mobile and email',
                     'Your consent, which we ask for before collecting health information',
                     'Your consent; scheduling may instead be treated as information you chose to give us for this purpose (under legal review)'
                   ],
@@ -285,7 +290,9 @@ const PrivacyPolicy = () => (
             <Section id="children" title="Children">
               <p className="mb-0">
                 If the patient is under 18, a parent or lawful guardian must fill in the form, declare that they are an
-                adult and the child&apos;s parent or guardian, and give consent for the child. We collect only what the
+                adult and the child&apos;s parent or guardian, and give consent for the child. We contact the parent or
+                guardian, not the child, using the mobile number (and email, if given) they enter, including for one-time
+                codes on the Data Rights page. We do not ask for proof of guardianship. We collect only what the
                 appointment needs and never run analytics during a booking for a child. From 2027 the new law adds
                 specific rules for children&apos;s data; whether its exemption for clinics providing health care to
                 children applies to us is under legal review.
@@ -302,7 +309,8 @@ const PrivacyPolicy = () => (
               </ul>
               <p className="mb-0">
                 <strong>How:</strong> on <Link href="/data-rights">Your Data Rights</Link>, enter the reference ID you got
-                when you booked and your registered mobile number or email, then the one-time code. Complaints:{' '}
+                when you booked and the mobile number or email given when booking (for a child, the parent or
+                guardian&apos;s), then the one-time code. Complaints:{' '}
                 <Link href="/grievance">Raise a Grievance</Link> or contact the Grievance Officer directly (see{' '}
                 <a href="#contact">Contact</a>).
               </p>

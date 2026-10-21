@@ -24,12 +24,12 @@
     "dataHeading": "Personal data we collect here",
     "data": {
       "name": "Name of the patient",
-      "phone": "Mobile number",
-      "email": "Email address (optional)",
+      "phone": "Patient's mobile number (adult patients only)",
+      "email": "Patient's email address (adult patients only, optional)",
       "slot": "Preferred date and time slot",
       "service": "The treatment or service you want to book",
       "reason": "Short reason for the visit or dental concern (optional)",
-      "guardian": "If the patient is under 18: the parent or guardian's name and relationship",
+      "guardian": "If the patient is under 18: the parent or guardian's full name, their relationship to the patient, their mobile number, their email address (optional) and their declaration. We use the guardian's mobile or email instead of the patient's.",
       "consentProof": "Proof of your choices: date and time, notice version, language, browser type and a one-way hash of your IP address (never the IP address itself)",
       "cookieId": "A random ID stored in a cookie on your device",
       "cookieChoices": "The cookie categories you allow or refuse",
@@ -113,16 +113,17 @@
     "isMinor": "Is the patient under 18?",
     "yes": "Yes",
     "no": "No",
-    "guardianHeading": "Parent or guardian",
-    "guardianIntro": "The patient is a child, so a parent or lawful guardian must give consent for them.",
-    "guardianName": "Parent or guardian's full name",
+    "guardianHeading": "Parent or guardian details",
+    "guardianIntro": "The patient is under 18, so a parent or legal guardian must book and give consent on the patient's behalf. We only need the details below.",
+    "guardianName": "Guardian's full name",
     "guardianRelationship": "Relationship to the patient",
     "relationships": {
+      "PARENT": "Parent",
+      "LEGAL_GUARDIAN": "Legal guardian",
       "MOTHER": "Mother",
-      "FATHER": "Father",
-      "LEGAL_GUARDIAN": "Legal guardian"
+      "FATHER": "Father"
     },
-    "guardianDeclaration": "I declare that I am an adult (18 or over) and the parent or lawful guardian of this patient, and I am giving the consents below on their behalf.",
+    "guardianDeclaration": "I am 18 or older and I am the parent or legal guardian of the patient. I am booking this appointment and giving consent on the patient's behalf.",
     "consentHeading": "Your consent",
     "consentAppointment": "I agree to {clinic} using the information above, including the sensitive personal data (the service and any reason for visit), to schedule and manage this appointment.",
     "submit": "Request appointment",
@@ -138,14 +139,21 @@
       "date": "Please choose a date from today onwards.",
       "slot": "Please choose a time.",
       "isMinor": "Please tell us whether the patient is under 18.",
-      "guardianName": "Please enter the parent or guardian's name.",
+      "guardianName": "Please enter the guardian's full name.",
       "guardianRelationship": "Please choose the relationship.",
-      "guardianDeclaration": "A parent or guardian must confirm this declaration.",
-      "consentAppointment": "We need your consent to book the appointment."
+      "guardianDeclaration": "The parent or guardian must confirm this declaration.",
+      "consentAppointment": "We need your consent to book the appointment.",
+      "guardianPhone": "Please enter a valid 10-digit mobile number for the guardian.",
+      "guardianEmail": "Please enter a valid email address or leave it empty."
     },
     "verifiedNote": "You have verified reference ID {ref}. If you enter the same patient name and the same mobile number or email, this request is added to that record instead of creating a new reference ID.",
     "returningHint": "Booked with us before? Verify your reference ID on the Data Rights page first, so this request is added to your existing record.",
-    "reusedText": "This request was added to your existing record."
+    "reusedText": "This request was added to your existing record.",
+    "guardianPhone": "Guardian's mobile number",
+    "guardianEmail": "Guardian's email",
+    "guardianContactNote": "We will send appointment confirmations, and one-time codes for the Data Rights page, to the guardian's mobile number or email, not the patient's.",
+    "guardianAnnouncement": "Parent or guardian details are now needed below.",
+    "consentAppointmentGuardian": "As the patient's parent or legal guardian, I agree on the patient's behalf to {clinic} using the information above, including health information about the patient, to schedule and manage this appointment."
   },
   "rights": {
     "title": "Your data rights",
@@ -153,6 +161,7 @@
     "verifyHeading": "Verify your identity",
     "referenceId": "Reference ID (e.g. DP-7K3QXM)",
     "contact": "Registered mobile number or email",
+    "contactHint": "For a booking for a patient under 18, use the parent or guardian's mobile number or email.",
     "sendCode": "Send one-time code",
     "codeSent": "If the details match our records, we have sent a 6-digit code to that number or email. It expires in {minutes} minutes.",
     "code": "One-time code",
@@ -196,7 +205,10 @@
     "fields": {
       "name": "Name",
       "phone": "Mobile number",
-      "email": "Email"
+      "email": "Email",
+      "guardianName": "Guardian's full name",
+      "guardianPhone": "Guardian's mobile number",
+      "guardianEmail": "Guardian's email (optional)"
     },
     "noData": "None",
     "demoLabel": "Test environment",

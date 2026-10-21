@@ -134,7 +134,7 @@ const PROCESSORS = [
 // src/locales/*.json changes: visitors are re-prompted and new consents point to
 // the new NoticeVersion row.
 // ---------------------------------------------------------------------------
-const NOTICE_VERSION = '2026-10-21.4';
+const NOTICE_VERSION = '2026-10-21.5';
 const NOTICE_EFFECTIVE_FROM = '2026-10-21';
 
 const POLICY_CHANGELOG = [
@@ -142,7 +142,8 @@ const POLICY_CHANGELOG = [
   { version: '2026-10-21.1', date: '2026-10-21', change: 'Removed optional appointment-reminder and marketing consents: no reminder or marketing process exists.' },
   { version: '2026-10-21.2', date: '2026-10-21', change: 'Notice and policy now describe the laws that apply today and say which new rules are expected in 2027; added who receives the data; sample organisation details.' },
   { version: '2026-10-21.3', date: '2026-10-21', change: 'Added optional first-party analytics (page-visit counting, 90 days, erased on withdrawal); removed the unused marketing cookie category.' },
-  { version: '2026-10-21.4', date: '2026-10-21', change: 'Rewrote the notice and policy in plain language without legal section or rule numbers.' }
+  { version: '2026-10-21.4', date: '2026-10-21', change: 'Rewrote the notice and policy in plain language without legal section or rule numbers.' },
+  { version: '2026-10-21.5', date: '2026-10-21', change: "For patients under 18 we now collect the parent or guardian's mobile number and email (optional) and use them instead of the patient's." }
 ];
 
 // s.5(3) / s.6(3): English plus languages from the Eighth Schedule. Add a locale

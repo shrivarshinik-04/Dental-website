@@ -1,12 +1,15 @@
 /**
  * Appointment booking, collection point A.
+ * Patients under 18: the age question comes first; answering "Yes" shows the parent or
+ * guardian section inline (announced, focus moved into it) and the guardian's mobile/email
+ * replace the patient's. Answering "No" clears and drops the guardian details.
  * DPDP Act s.5 + Rule 3 (notice with itemised data before the consent request),
  * s.6(1) (one unticked checkbox per purpose; the required purpose is not bundled with
  * reminders or marketing; the form submits without the optional ones), s.9 + Rule 12 /
  * Fourth Schedule Part A item 1 (children: guardian consent and declaration, minimum
  * data, no marketing, no analytics for the session).
  */
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { NOTICE_VERSION } from 'config/compliance';
@@ -14,6 +17,7 @@ import { useConsent } from 'lib/consentStore';
 import { useT } from 'lib/i18n';
 import PageHeader from 'components/PageHeader';
 import ConsentNotice from 'components/ConsentNotice';
+import GuardianFields from 'components/GuardianFields';
 import LanguageSwitcher from 'components/LanguageSwitcher';
 import { postJson } from 'lib/api';
 import { services } from '../src/data';
@@ -29,9 +33,16 @@ const EMPTY = {
   isMinor: null,
   guardianName: '',
   guardianRelationship: '',
+  guardianPhone: '',
+  guardianEmail: '',
   guardianDeclaration: false,
   consentAppointment: false
 };
+
+const GUARDIAN_EMPTY = { guardianName: '', guardianRelationship: '', guardianPhone: '', guardianEmail: '', guardianDeclaration: false };
+
+const validPhone = (value) => /^(\+?91|0)?[6-9]\d{9}$/.test(String(value).replace(/[\s()-]/g, ''));
+const validEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value).trim());
 
 const localToday = () => {
   const now = new Date();
@@ -40,18 +51,22 @@ const localToday = () => {
 
 const validate = (form) => {
   const errors = {};
-  if (!form.name.trim()) errors.name = 'name';
-  if (!/^(\+?91|0)?[6-9]\d{9}$/.test(form.phone.replace(/[\s()-]/g, ''))) errors.phone = 'phone';
-  if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim())) errors.email = 'email';
-  if (!form.service) errors.service = 'service';
-  if (!form.preferredDate || form.preferredDate < localToday()) errors.preferredDate = 'date';
-  if (!form.preferredSlot) errors.preferredSlot = 'slot';
   if (form.isMinor === null) errors.isMinor = 'isMinor';
   if (form.isMinor) {
     if (!form.guardianName.trim()) errors.guardianName = 'guardianName';
     if (!form.guardianRelationship) errors.guardianRelationship = 'guardianRelationship';
+    if (!validPhone(form.guardianPhone)) errors.guardianPhone = 'guardianPhone';
+    if (form.guardianEmail && !validEmail(form.guardianEmail)) errors.guardianEmail = 'guardianEmail';
     if (!form.guardianDeclaration) errors.guardianDeclaration = 'guardianDeclaration';
   }
+  if (!form.name.trim()) errors.name = 'name';
+  if (form.isMinor !== true) {
+    if (!validPhone(form.phone)) errors.phone = 'phone';
+    if (form.email && !validEmail(form.email)) errors.email = 'email';
+  }
+  if (!form.service) errors.service = 'service';
+  if (!form.preferredDate || form.preferredDate < localToday()) errors.preferredDate = 'date';
+  if (!form.preferredSlot) errors.preferredSlot = 'slot';
   if (!form.consentAppointment) errors.consentAppointment = 'consentAppointment';
   return errors;
 };
@@ -78,10 +93,18 @@ const BookAppointment = () => {
       .catch(() => {});
   }, []);
 
-  // A child's booking: no analytics or marketing for the rest of this session (s.9(3)).
+  // A child's booking: no analytics for the rest of this session (s.9(3)).
   useEffect(() => {
     if (form.isMinor !== null) setMinorSession(form.isMinor);
   }, [form.isMinor, setMinorSession]);
+
+  // When the guardian section appears, move focus to its first field.
+  const guardianFirstField = useRef(null);
+  const wasMinor = useRef(false);
+  useEffect(() => {
+    if (form.isMinor === true && !wasMinor.current) guardianFirstField.current?.focus();
+    wasMinor.current = form.isMinor === true;
+  }, [form.isMinor]);
 
   const set = (field) => (e) => {
     const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
@@ -92,7 +115,8 @@ const BookAppointment = () => {
     setForm((prev) => ({
       ...prev,
       isMinor: value,
-      ...(value ? {} : { guardianName: '', guardianRelationship: '', guardianDeclaration: false })
+      // Back to an adult patient: clear the guardian details so they are never submitted.
+      ...(value ? {} : GUARDIAN_EMPTY)
     }));
 
   const submit = async (e) => {
@@ -107,16 +131,23 @@ const BookAppointment = () => {
     try {
       const { referenceId, reused } = await postJson('/api/appointments', {
         name: form.name,
-        phone: form.phone,
-        email: form.email,
+        // Adults give their own contact; for a patient under 18 the guardian's is used.
+        phone: form.isMinor ? '' : form.phone,
+        email: form.isMinor ? '' : form.email,
         service: form.service,
         preferredDate: form.preferredDate,
         preferredSlot: form.preferredSlot,
         reason: form.reason,
         isMinor: form.isMinor,
-        guardianName: form.isMinor ? form.guardianName : '',
-        guardianRelationship: form.isMinor ? form.guardianRelationship : null,
-        guardianDeclaration: form.isMinor ? form.guardianDeclaration : false,
+        ...(form.isMinor
+          ? {
+              guardianName: form.guardianName,
+              guardianRelationship: form.guardianRelationship,
+              guardianPhone: form.guardianPhone,
+              guardianEmail: form.guardianEmail,
+              guardianDeclaration: form.guardianDeclaration
+            }
+          : {}),
         consents: { APPOINTMENT: form.consentAppointment },
         language,
         noticeVersion: NOTICE_VERSION
@@ -181,6 +212,45 @@ const BookAppointment = () => {
 
               <form onSubmit={submit} noValidate aria-describedby="consent-notice-title">
                 <div className="row g-3">
+                  <fieldset className="col-12" aria-describedby={described('isMinor')}>
+                    <legend className="form-label fs-16 mb-1">{t('booking.isMinor')} *</legend>
+                    {[true, false].map((value) => (
+                      <div className="form-check form-check-inline" key={String(value)}>
+                        <input
+                          className={`form-check-input${invalid('isMinor')}`}
+                          type="radio"
+                          name="isMinor"
+                          id={value ? 'field-isMinor' : 'field-isMinor-no'}
+                          checked={form.isMinor === value}
+                          onChange={() => setMinor(value)}
+                        />
+                        <label className="form-check-label" htmlFor={value ? 'field-isMinor' : 'field-isMinor-no'}>
+                          {value ? t('booking.yes') : t('booking.no')}
+                        </label>
+                      </div>
+                    ))}
+                    {fieldError('isMinor')}
+                  </fieldset>
+
+                  {/* Polite live region with a short message only, so screen readers announce the
+                      new section without reading every field aloud. */}
+                  <div className="visually-hidden" aria-live="polite" id="guardian-live">
+                    {form.isMinor ? t('booking.guardianAnnouncement') : ''}
+                  </div>
+                  {form.isMinor && (
+                    <div className="col-12">
+                      <GuardianFields
+                        ref={guardianFirstField}
+                        form={form}
+                        set={set}
+                        invalid={invalid}
+                        fieldError={fieldError}
+                        described={described}
+                        t={t}
+                      />
+                    </div>
+                  )}
+
                   <div className="col-md-6">
                     <label htmlFor="field-name" className="form-label">
                       {t('booking.name')} *
@@ -197,6 +267,9 @@ const BookAppointment = () => {
                     />
                     {fieldError('name')}
                   </div>
+                  {/* The patient's own contact is collected for adults only. */}
+                  {form.isMinor !== true && (
+                    <Fragment>
                   <div className="col-md-6">
                     <label htmlFor="field-phone" className="form-label">
                       {t('booking.phone')} *
@@ -233,6 +306,8 @@ const BookAppointment = () => {
                     />
                     {fieldError('email')}
                   </div>
+                    </Fragment>
+                  )}
                   <div className="col-md-6">
                     <label htmlFor="field-service" className="form-label">
                       {t('booking.service')} *
@@ -309,88 +384,6 @@ const BookAppointment = () => {
                     </div>
                   </div>
 
-                  <fieldset className="col-12" aria-describedby={described('isMinor')}>
-                    <legend className="form-label fs-16 mb-1">{t('booking.isMinor')} *</legend>
-                    {[true, false].map((value) => (
-                      <div className="form-check form-check-inline" key={String(value)}>
-                        <input
-                          className={`form-check-input${invalid('isMinor')}`}
-                          type="radio"
-                          name="isMinor"
-                          id={value ? 'field-isMinor' : 'field-isMinor-no'}
-                          checked={form.isMinor === value}
-                          onChange={() => setMinor(value)}
-                        />
-                        <label className="form-check-label" htmlFor={value ? 'field-isMinor' : 'field-isMinor-no'}>
-                          {value ? t('booking.yes') : t('booking.no')}
-                        </label>
-                      </div>
-                    ))}
-                    {fieldError('isMinor')}
-                  </fieldset>
-
-                  {form.isMinor && (
-                    <fieldset className="col-12 border rounded p-3 bg-grays">
-                      <legend className="fs-18 merriweather text-title float-none w-auto px-1 mb-1">
-                        {t('booking.guardianHeading')}
-                      </legend>
-                      <p className="fs-15">{t('booking.guardianIntro')}</p>
-                      <div className="row g-3">
-                        <div className="col-md-6">
-                          <label htmlFor="field-guardianName" className="form-label">
-                            {t('booking.guardianName')} *
-                          </label>
-                          <input
-                            id="field-guardianName"
-                            className={`form-control${invalid('guardianName')}`}
-                            value={form.guardianName}
-                            onChange={set('guardianName')}
-                            maxLength={100}
-                            required
-                            aria-describedby={described('guardianName')}
-                          />
-                          {fieldError('guardianName')}
-                        </div>
-                        <div className="col-md-6">
-                          <label htmlFor="field-guardianRelationship" className="form-label">
-                            {t('booking.guardianRelationship')} *
-                          </label>
-                          <select
-                            id="field-guardianRelationship"
-                            className={`form-select${invalid('guardianRelationship')}`}
-                            value={form.guardianRelationship}
-                            onChange={set('guardianRelationship')}
-                            required
-                            aria-describedby={described('guardianRelationship')}
-                          >
-                            <option value="">—</option>
-                            {['MOTHER', 'FATHER', 'LEGAL_GUARDIAN'].map((r) => (
-                              <option key={r} value={r}>
-                                {t(`booking.relationships.${r}`)}
-                              </option>
-                            ))}
-                          </select>
-                          {fieldError('guardianRelationship')}
-                        </div>
-                        <div className="col-12">
-                          <div className="form-check">
-                            <input
-                              id="field-guardianDeclaration"
-                              type="checkbox"
-                              className={`form-check-input${invalid('guardianDeclaration')}`}
-                              checked={form.guardianDeclaration}
-                              onChange={set('guardianDeclaration')}
-                              required
-                            />
-                            <label className="form-check-label" htmlFor="field-guardianDeclaration">
-                              {t('booking.guardianDeclaration')} *
-                            </label>
-                          </div>
-                          {fieldError('guardianDeclaration')}
-                        </div>
-                      </div>
-                    </fieldset>
-                  )}
                 </div>
 
                 {/* The notice is shown in full before the consent checkboxes (s.5, Rule 3). */}
@@ -415,7 +408,8 @@ const BookAppointment = () => {
                       aria-describedby={described('consentAppointment')}
                     />
                     <label className="form-check-label" htmlFor="field-consentAppointment">
-                      {t('booking.consentAppointment')} ({t('common.required')})
+                      {form.isMinor ? t('booking.consentAppointmentGuardian') : t('booking.consentAppointment')} (
+                      {t('common.required')})
                     </label>
                     {fieldError('consentAppointment')}
                   </div>
