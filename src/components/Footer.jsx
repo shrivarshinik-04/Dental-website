@@ -50,8 +50,10 @@ const Footer = () => {
                   src="/img/logo-light.webp"
                   alt={`${CLINIC.tradeName} logo`}
                   width={200}
-                  height={100}
+                  height={93}
                   className="text-center"
+                  style={{ height: 'auto' }}
+                  priority
                 />
               </div>
               <p className="lead mb-5 fs-18 text-white lato text-justify">

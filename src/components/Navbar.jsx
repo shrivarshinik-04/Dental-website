@@ -1,4 +1,4 @@
-import { Fragment, useRef } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import useSticky from 'hooks/useSticky';
 
@@ -18,6 +18,32 @@ const Navbar = ({
 }) => {
   const sticky = useSticky(350);
   const navbarRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Mobile menu accessibility: expose its state on the toggle, move focus into it when it
+  // opens (so Esc and Tab work), and close it with Esc from anywhere.
+  useEffect(() => {
+    const menu = document.getElementById('offcanvas-nav');
+    if (!menu) return undefined;
+    const onShown = () => {
+      setMenuOpen(true);
+      menu.querySelector('.btn-close')?.focus();
+    };
+    const onHidden = () => setMenuOpen(false);
+    const onKey = (e) => {
+      if (e.key === 'Escape' && menu.classList.contains('show')) {
+        import('bootstrap').then(({ Offcanvas }) => Offcanvas.getOrCreateInstance(menu).hide());
+      }
+    };
+    menu.addEventListener('shown.bs.offcanvas', onShown);
+    menu.addEventListener('hidden.bs.offcanvas', onHidden);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      menu.removeEventListener('shown.bs.offcanvas', onShown);
+      menu.removeEventListener('hidden.bs.offcanvas', onHidden);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, []);
 
   const fixedClassName =
     'navbar navbar-expand-lg center-nav transparent navbar-light navbar-clone fixed';
@@ -33,7 +59,8 @@ const Navbar = ({
               className="py-2"
               src="/img/logo.webp"
               width={150}
-              height={90}
+              height={70}
+              style={{ height: 'auto' }}
               priority
             />
           }
@@ -54,7 +81,8 @@ const Navbar = ({
                 className="py-2"
                 src="/img/logo-light.webp"
                 width={150}
-                height={80}
+                height={70}
+              style={{ height: 'auto' }}
                 priority
               />
             }
@@ -119,7 +147,9 @@ const Navbar = ({
           data-bs-toggle="offcanvas"
           data-bs-target="#offcanvas-nav"
           className="hamburger offcanvas-nav-btn"
-          aria-label="Toggle navigation"
+          aria-label="Open menu"
+          aria-controls="offcanvas-nav"
+          aria-expanded={menuOpen}
         >
           <span />
         </button>
