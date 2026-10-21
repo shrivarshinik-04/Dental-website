@@ -1,17 +1,24 @@
 /**
- * Security headers: DPDP Act s.8(5) reasonable security safeguards; DPDP Rules 2025,
- * Rule 6(1)(a) (secure transmission) and 6(1)(c) (prevent unauthorised access).
+ * Security headers. Current law: IT Act s.43A / SPDI Rules 2011, Rule 8 (reasonable
+ * security practices). From about May 2027: DPDP Act s.8(5) and DPDP Rules 2025, Rule 6.
  *
- * - HSTS forces HTTPS for two years. It only takes effect when the site is served over
- *   HTTPS; also redirect HTTP to HTTPS at your host / load balancer.
+ * - HSTS and upgrade-insecure-requests are sent only when NODE_ENV=production AND
+ *   FORCE_HTTPS=true (src/lib/env.js). Without that flag a production build still works on
+ *   plain HTTP (e.g. a test environment opened by IP). Headers are fixed at build time, so
+ *   set FORCE_HTTPS for `next build`. Also redirect HTTP to HTTPS at the host.
  * - The CSP only allows resources from this origin, so no third-party request can happen
- *   before consent. If you set ANALYTICS.src in src/config/compliance.js, its origin is
- *   added here automatically (it still only loads after opt-in).
+ *   before consent. If ANALYTICS.src points elsewhere, its origin is added here
+ *   automatically (it still only loads after opt-in).
  */
 const { ANALYTICS } = require('./src/config/compliance');
+const { assertDemoModeAllowed, forceHttps } = require('./src/lib/env');
+
+// Refuse to build or start with DEMO_MODE in production unless explicitly allowed.
+assertDemoModeAllowed();
 
 const isDev = process.env.NODE_ENV !== 'production';
-const analyticsOrigin = ANALYTICS.src ? new URL(ANALYTICS.src).origin : '';
+const https = forceHttps();
+const analyticsOrigin = /^https?:\/\//.test(ANALYTICS.src) ? new URL(ANALYTICS.src).origin : '';
 
 const csp = [
   "default-src 'self'",
@@ -26,17 +33,18 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  ...(isDev ? [] : ['upgrade-insecure-requests'])
+  ...(https ? ['upgrade-insecure-requests'] : [])
 ].join('; ');
 
 const securityHeaders = [
   { key: 'Content-Security-Policy', value: csp },
-  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+  ...(https ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' }] : []),
   { key: 'X-Frame-Options', value: 'DENY' },
   { key: 'X-Content-Type-Options', value: 'nosniff' },
   { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
   { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()' },
-  { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' }
+  // Browsers ignore COOP on non-HTTPS origins (and log a warning), so send it with HTTPS only.
+  ...(https ? [{ key: 'Cross-Origin-Opener-Policy', value: 'same-origin' }] : [])
 ];
 
 const nextConfig = {

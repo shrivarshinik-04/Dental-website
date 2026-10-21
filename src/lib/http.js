@@ -5,12 +5,17 @@
  * throttling of public endpoints.
  */
 import { hmac } from './crypto';
+import { forceHttps, trustProxy } from './env';
 
-const isProd = process.env.NODE_ENV === 'production';
-
+/**
+ * The client IP. X-Forwarded-For is client-controlled unless a trusted reverse proxy
+ * overwrites it, so it is only used when TRUST_PROXY=true (see src/lib/env.js).
+ */
 export const clientIp = (req) => {
-  const forwarded = req.headers['x-forwarded-for'];
-  if (forwarded) return String(forwarded).split(',')[0].trim();
+  if (trustProxy()) {
+    const forwarded = req.headers['x-forwarded-for'];
+    if (forwarded) return String(forwarded).split(',')[0].trim();
+  }
   return req.socket?.remoteAddress || 'unknown';
 };
 
@@ -68,7 +73,9 @@ export const serializeCookie = (name, value, { maxAge, httpOnly = true, path = '
   const parts = [`${name}=${encodeURIComponent(value)}`, `Path=${path}`, 'SameSite=Lax'];
   if (maxAge !== undefined) parts.push(`Max-Age=${maxAge}`);
   if (httpOnly) parts.push('HttpOnly');
-  if (isProd) parts.push('Secure');
+  // Secure only when the site is actually served over HTTPS (FORCE_HTTPS), so a
+  // production build on plain HTTP in a test environment keeps its cookies.
+  if (forceHttps()) parts.push('Secure');
   return parts.join('; ');
 };
 
