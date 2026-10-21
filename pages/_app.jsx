@@ -33,6 +33,7 @@ import 'assets/scss/style.scss';
 
 function MyApp({ Component, pageProps }) {
   const { pathname } = useRouter();
+  const isAdmin = pathname === '/admin' || pathname.startsWith('/admin/');
   // Page content is always server-rendered so notices, policies and contact details are in the
   // HTML (readable without JavaScript). The loader only covers the page until hydration.
   const [hydrated, setHydrated] = useState(false);
@@ -64,12 +65,19 @@ function MyApp({ Component, pageProps }) {
       </Head>
       <ConsentProvider>
         <LanguageProvider>
-          <Layout>
-            <ThemeProvider>
-              {!hydrated && <div className="page-loader" aria-hidden="true" />}
+          {isAdmin ? (
+            // Staff area: no public header, footer or cookie banner.
+            <main role="main">
               <Component {...pageProps} />
-            </ThemeProvider>
-          </Layout>
+            </main>
+          ) : (
+            <Layout>
+              <ThemeProvider>
+                {!hydrated && <div className="page-loader" aria-hidden="true" />}
+                <Component {...pageProps} />
+              </ThemeProvider>
+            </Layout>
+          )}
         </LanguageProvider>
       </ConsentProvider>
     </Fragment>
