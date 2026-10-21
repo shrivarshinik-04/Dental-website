@@ -64,11 +64,19 @@ const BookAppointment = () => {
   const { setMinorSession } = useConsent();
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState({ busy: false, error: '', referenceId: '' });
+  const [status, setStatus] = useState({ busy: false, error: '', referenceId: '', reused: false });
   // Set after mount: the server may be in another timezone than the visitor, and a
   // different value would cause a hydration mismatch.
   const [today, setToday] = useState('');
   useEffect(() => setToday(localToday()), []);
+  // A verified rights-portal session lets a returning patient keep one reference ID.
+  const [verifiedRef, setVerifiedRef] = useState(null);
+  useEffect(() => {
+    fetch('/api/rights/session')
+      .then((r) => r.json())
+      .then((s) => setVerifiedRef(s.verified ? s.referenceId : null))
+      .catch(() => {});
+  }, []);
 
   // A child's booking: no analytics or marketing for the rest of this session (s.9(3)).
   useEffect(() => {
@@ -97,7 +105,7 @@ const BookAppointment = () => {
     }
     setStatus({ busy: true, error: '', referenceId: '' });
     try {
-      const { referenceId } = await postJson('/api/appointments', {
+      const { referenceId, reused } = await postJson('/api/appointments', {
         name: form.name,
         phone: form.phone,
         email: form.email,
@@ -113,7 +121,7 @@ const BookAppointment = () => {
         language,
         noticeVersion: NOTICE_VERSION
       });
-      setStatus({ busy: false, error: '', referenceId });
+      setStatus({ busy: false, error: '', referenceId, reused });
       setForm(EMPTY);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
@@ -151,6 +159,7 @@ const BookAppointment = () => {
                 <div className="alert alert-success p-4" role="status">
                   <h2 className="fs-22 merriweather mb-2">{t('booking.successTitle')}</h2>
                   <p className="mb-2">{t('booking.successText')}</p>
+                  {status.reused && <p className="mb-2">{t('booking.reusedText')}</p>}
                   <p className="mb-2">
                     {t('booking.referenceLabel')}: <strong className="fs-20">{status.referenceId}</strong>
                   </p>
@@ -159,6 +168,16 @@ const BookAppointment = () => {
                   </p>
                 </div>
               )}
+
+              <p className="fs-15">
+                {verifiedRef ? (
+                  t('booking.verifiedNote', { ref: verifiedRef })
+                ) : (
+                  <Fragment>
+                    {t('booking.returningHint')} <Link href="/data-rights">{t('notice.links.rights')}</Link>
+                  </Fragment>
+                )}
+              </p>
 
               <form onSubmit={submit} noValidate aria-describedby="consent-notice-title">
                 <div className="row g-3">

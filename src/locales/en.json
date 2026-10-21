@@ -142,7 +142,10 @@
       "guardianRelationship": "Please choose the relationship.",
       "guardianDeclaration": "A parent or guardian must confirm this declaration.",
       "consentAppointment": "We need your consent to book the appointment."
-    }
+    },
+    "verifiedNote": "You have verified reference ID {ref}. If you enter the same patient name and the same mobile number or email, this request is added to that record instead of creating a new reference ID.",
+    "returningHint": "Booked with us before? Verify your reference ID on the Data Rights page first, so this request is added to your existing record.",
+    "reusedText": "This request was added to your existing record."
   },
   "rights": {
     "title": "Your data rights",

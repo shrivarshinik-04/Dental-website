@@ -15,7 +15,8 @@
 import { NOTICE_VERSION } from 'config/compliance';
 import prisma from 'lib/db';
 import { auditMany } from 'lib/audit';
-import { encrypt, randomReference } from 'lib/crypto';
+import { decrypt, encrypt, randomReference } from 'lib/crypto';
+import { readSession } from 'lib/rightsSession';
 import { ensureNoticeVersion } from 'lib/noticeContent';
 import { appointmentSchema, fieldErrors } from 'lib/validation';
 import { allowMethods, hashedIp, rateLimit, requireSameOrigin, userAgent, withErrors } from 'lib/http';
@@ -26,6 +27,18 @@ const MAX_DAYS_AHEAD = 180;
 
 // YYYY-MM-DD in IST, independent of the server's timezone.
 const dateInIndia = (date) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(date);
+
+const same = (a, b) => Boolean(a && b) && a.trim().toLowerCase() === b.trim().toLowerCase();
+
+const verifiedMatch = async (req, data) => {
+  const session = readSession(req);
+  if (!session) return null;
+  const principal = await prisma.dataPrincipal.findUnique({ where: { id: session.dataPrincipalId } });
+  if (!principal || principal.erasedAt) return null;
+  const nameMatches = same(decrypt(principal.name), data.name);
+  const contactMatches = same(decrypt(principal.phone), data.phone) || same(decrypt(principal.email), data.email);
+  return nameMatches && contactMatches ? principal : null;
+};
 
 const uniqueReference = async (tx) => {
   for (let i = 0; i < 5; i += 1) {
@@ -53,18 +66,25 @@ export default withErrors(async (req, res) => {
   const ipHash = hashedIp(req);
   const ua = userAgent(req);
 
-  const referenceId = await prisma.$transaction(async (tx) => {
-    const notice = await ensureNoticeVersion(tx, data.language);
-    const reference = await uniqueReference(tx);
+  // Returning patient: reuse the existing record only when this browser has verified that
+  // record with a one-time code AND the name and the phone or email match it. Never merge
+  // on an unverified match (and a parent booking for a child with the same phone keeps
+  // a separate record because the name differs).
+  const existing = await verifiedMatch(req, data);
 
-    const principal = await tx.dataPrincipal.create({
-      data: {
-        referenceId: reference,
-        name: encrypt(data.name),
-        phone: encrypt(data.phone),
-        email: encrypt(data.email)
-      }
-    });
+  const { referenceId, reused } = await prisma.$transaction(async (tx) => {
+    const notice = await ensureNoticeVersion(tx, data.language);
+
+    const principal = existing
+      ? existing
+      : await tx.dataPrincipal.create({
+          data: {
+            referenceId: await uniqueReference(tx),
+            name: encrypt(data.name),
+            phone: encrypt(data.phone),
+            email: encrypt(data.email)
+          }
+        });
 
     const appointment = await tx.appointment.create({
       data: {
@@ -98,15 +118,15 @@ export default withErrors(async (req, res) => {
 
     await auditMany(
       [
-        { entity: 'DataPrincipal', entityId: principal.id },
-        { entity: 'Appointment', entityId: appointment.id },
+        ...(existing ? [] : [{ entity: 'DataPrincipal', entityId: principal.id }]),
+        { entity: 'Appointment', entityId: appointment.id, detail: existing ? 'returning patient (verified)' : undefined },
         { entity: 'ConsentRecord', entityId: principal.id, detail: purposes.map(([p, g]) => `${p}=${g ? 'GIVEN' : 'DENIED'}`).join(',') }
       ].map((e) => ({ ...e, actor: 'public', action: 'CREATE', ipHash })),
       tx
     );
 
-    return reference;
+    return { referenceId: principal.referenceId, reused: Boolean(existing) };
   });
 
-  res.status(201).json({ referenceId });
+  res.status(201).json({ referenceId, reused });
 });
