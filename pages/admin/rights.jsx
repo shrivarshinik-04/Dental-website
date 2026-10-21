@@ -36,7 +36,7 @@ const Rights = ({ admin, permissions, denied, requests = [] }) => (
             const overdue = open && new Date(r.dueDate) < new Date();
             return (
               <tr key={r.id} className={overdue ? 'table-danger' : ''}>
-                <td>{new Date(r.createdAt).toLocaleString('en-IN')}</td>
+                <td>{new Date(r.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
                 <td>{r.identifierProvided}</td>
                 <td>{r.type}</td>
                 <td>{r.verificationMethod}</td>

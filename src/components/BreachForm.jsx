@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { postJson } from 'lib/api';
+import { CERTIN_INCIDENT_TYPES } from 'lib/breach';
 
 /**
- * Records or updates a personal data breach with every field Rule 7(1)(a)–(e) and
- * Rule 7(2) of the DPDP Rules 2025 asks for.
+ * Records or updates an incident with the details needed for the CERT-In report (now) and
+ * the DPDP Rules 2025, Rule 7 intimations (from about May 2027).
  */
 const FIELDS = [
   ['description', 'Description of the breach', true],
@@ -28,6 +29,7 @@ const BreachForm = ({ incident }) => {
     detectedAt: toLocalInput(incident?.detectedAt) || toLocalInput(new Date().toISOString()),
     occurredAt: toLocalInput(incident?.occurredAt),
     affectedCount: incident?.affectedCount ?? 0,
+    incidentType: incident?.incidentType || '',
     ...Object.fromEntries(FIELDS.map(([key]) => [key, incident?.[key] || '']))
   }));
   const [busy, setBusy] = useState(false);
@@ -41,7 +43,8 @@ const BreachForm = ({ incident }) => {
         ...form,
         detectedAt: new Date(form.detectedAt).toISOString(),
         occurredAt: form.occurredAt ? new Date(form.occurredAt).toISOString() : null,
-        affectedCount: Number(form.affectedCount)
+        affectedCount: Number(form.affectedCount),
+        incidentType: form.incidentType || null
       });
       router.replace(router.asPath);
     } catch (err) {
@@ -93,6 +96,24 @@ const BreachForm = ({ incident }) => {
           onChange={(e) => setForm({ ...form, affectedCount: e.target.value })}
           required
         />
+      </div>
+      <div className="col-md-12">
+        <label className="form-label" htmlFor={`${prefix}-incidentType`}>
+          Incident type (CERT-In Directions, Annexure I)
+        </label>
+        <select
+          id={`${prefix}-incidentType`}
+          className="form-select"
+          value={form.incidentType}
+          onChange={(e) => setForm({ ...form, incidentType: e.target.value })}
+        >
+          <option value="">—</option>
+          {CERTIN_INCIDENT_TYPES.map(([code, label]) => (
+            <option key={code} value={code}>
+              {code}. {label}
+            </option>
+          ))}
+        </select>
       </div>
       {FIELDS.map(([key, label, required]) => (
         <div className="col-md-6" key={key}>

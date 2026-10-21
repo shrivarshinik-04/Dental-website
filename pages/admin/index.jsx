@@ -36,7 +36,8 @@ export const getServerSideProps = adminProps(null, async (ctx, admin) => {
     prisma.grievance.count({ where: open }),
     prisma.grievance.count({ where: { ...open, dueDate: { lt: now } } }),
     prisma.breachIncident.count({ where: { status: { not: 'CLOSED' } } }),
-    prisma.breachIncident.count({ where: { detailedReportSentAt: null, detailedReportDueAt: { lt: now } } })
+    // Overdue: CERT-In report not sent within 6 hours of noticing.
+    prisma.breachIncident.count({ where: { certInReportedAt: null, detectedAt: { lt: new Date(now.getTime() - 6 * 3600000) } } })
   ]);
   const all = [
     { label: 'Pending appointments', value: appointments, overdue: 0, href: '/admin/appointments', perm: 'appointments' },

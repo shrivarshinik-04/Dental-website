@@ -28,7 +28,7 @@ const Nominations = ({ admin, permissions, denied, nominations = [] }) => (
               <td>{n.nomineeName}</td>
               <td>{n.relationship}</td>
               <td>{n.contact}</td>
-              <td>{new Date(n.createdAt).toLocaleDateString('en-IN')}</td>
+              <td>{new Date(n.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
               <td>{n.active ? 'Yes' : 'Replaced'}</td>
             </tr>
           ))}

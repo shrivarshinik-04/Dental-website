@@ -66,9 +66,11 @@ const APPOINTMENTS_DESK = {
 
 // Owner of the breach / incident procedure (docs/BREACH-RESPONSE.md). CERT-In Directions
 // 2022, direction (ii): report listed incidents to CERT-In within 6 hours of noticing.
+// Also the Point of Contact registered with CERT-In (direction (iii), Annexure II).
 const INCIDENT_OWNER = {
   isSample: IS_SAMPLE,
   name: 'S. Sample (Incident Owner)',
+  designation: 'Incident owner and CERT-In Point of Contact',
   email: 'security@smiledental.example.com',
   phone: '+91 00000 00005'
 };

@@ -1,6 +1,7 @@
 /**
- * Breach register API. DPDP Act s.8(6); DPDP Rules 2025, Rule 7. Records incidents,
- * sets the 72-hour detailed-report deadline, and logs when each intimation was sent.
+ * Incident register API (docs/BREACH-RESPONSE.md). Records incidents and when each report
+ * was sent: CERT-In within 6 hours of noticing (now); DPDP Rule 7 intimations and the
+ * 72-hour detailed report to the Board (from about May 2027).
  */
 import { z } from 'zod';
 import prisma from 'lib/db';
@@ -11,6 +12,7 @@ import { breachSchema } from 'lib/validation';
 import { allowMethods, hashedIp, requireSameOrigin, withErrors } from 'lib/http';
 
 const MILESTONE_STATUS = {
+  certInReportedAt: null,
   boardIntimatedAt: 'BOARD_INTIMATED',
   principalsIntimatedAt: null,
   detailedReportSentAt: 'REPORT_SUBMITTED'

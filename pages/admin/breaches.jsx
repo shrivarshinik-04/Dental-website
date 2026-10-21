@@ -1,23 +1,27 @@
 /**
- * Personal data breach register. DPDP Act s.8(6); DPDP Rules 2025, Rule 7:
- * - intimate the Board and each affected Data Principal without delay;
- * - send the Board a detailed report within 72 hours of becoming aware.
- * Shows the 72-hour countdown, generates draft intimations with all Rule 7(1)(a)–(e)
- * and 7(2) fields, and records when each one was sent.
+ * Incident register, connected to the written procedure in docs/BREACH-RESPONSE.md and its
+ * named owner (INCIDENT_OWNER).
+ * Now: CERT-In Directions 2022 — report within 6 hours of noticing (countdown + draft).
+ * From about May 2027: DPDP Act s.8(6), DPDP Rules Rule 7 — Board and individual
+ * intimations and the 72-hour detailed report (drafts + countdown, labelled as future).
+ * Records when each report was sent.
  */
 import { useRouter } from 'next/router';
 import prisma from 'lib/db';
 import { adminProps, noStore } from 'lib/adminData';
-import { draftBoardDetailedReport, draftBoardIntimation, draftPrincipalNotice } from 'lib/breach';
+import { INCIDENT_OWNER } from 'config/compliance';
+import { certInDueAt, draftBoardDetailedReport, draftBoardIntimation, draftCertInReport, draftPrincipalNotice } from 'lib/breach';
+import SampleBadge from 'components/SampleBadge';
 import { postJson } from 'lib/api';
 import AdminLayout from 'components/AdminLayout';
 import BreachForm from 'components/BreachForm';
 import Countdown from 'components/Countdown';
 
 const MILESTONES = [
-  ['boardIntimatedAt', 'Initial intimation to Board (without delay)', 'boardDraft'],
-  ['principalsIntimatedAt', 'Intimation to affected Data Principals (without delay)', 'principalDraft'],
-  ['detailedReportSentAt', 'Detailed report to Board (within 72 hours)', 'reportDraft']
+  ['certInReportedAt', 'Report to CERT-In within 6 hours of noticing (CERT-In Directions 2022 — in force)', 'certInDraft'],
+  ['boardIntimatedAt', 'Initial intimation to the Data Protection Board (DPDP Rule 7(2)(a) — from about May 2027)', 'boardDraft'],
+  ['principalsIntimatedAt', 'Intimation to affected individuals (DPDP Rule 7(1) — from about May 2027)', 'principalDraft'],
+  ['detailedReportSentAt', 'Detailed report to the Board within 72 hours (DPDP Rule 7(2)(b) — from about May 2027)', 'reportDraft']
 ];
 
 const Breaches = ({ admin, permissions, denied, incidents = [] }) => {
@@ -42,6 +46,16 @@ const Breaches = ({ admin, permissions, denied, incidents = [] }) => {
 
   return (
     <AdminLayout title="Breach incidents" admin={admin} permissions={permissions} denied={denied}>
+      <div className="border rounded p-3 mb-4 fs-15">
+        <p className="mb-1">
+          <strong>Incident owner and CERT-In Point of Contact:</strong> {INCIDENT_OWNER.name}, {INCIDENT_OWNER.email},{' '}
+          {INCIDENT_OWNER.phone} <SampleBadge />
+        </p>
+        <p className="mb-0">
+          Follow the written procedure in <code>docs/BREACH-RESPONSE.md</code>: contain, preserve evidence, record the
+          incident here as soon as it is noticed, report to CERT-In within 6 hours, then complete the remaining steps.
+        </p>
+      </div>
       <details className="border rounded p-3 mb-6 bg-grays">
         <summary className="fw-bold">Record a new incident</summary>
         <div className="mt-3">
@@ -53,12 +67,16 @@ const Breaches = ({ admin, permissions, denied, incidents = [] }) => {
         <section key={incident.id} className="border rounded p-4 mb-4 bg-white">
           <div className="d-flex flex-wrap justify-content-between gap-2 mb-2">
             <h2 className="fs-20 merriweather text-title mb-0">
-              Detected {new Date(incident.detectedAt).toLocaleString('en-IN')}: {incident.nature}
+              Detected {new Date(incident.detectedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}: {incident.nature}
             </h2>
             <span className="badge bg-secondary align-self-start">{incident.status}</span>
           </div>
-          <p className="mb-2">
-            Detailed report due {new Date(incident.detailedReportDueAt).toLocaleString('en-IN')}{' '}
+          <p className="mb-1">
+            CERT-In report due {new Date(incident.certInDueAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}{' '}
+            <Countdown due={incident.certInDueAt} done={Boolean(incident.certInReportedAt)} warnHours={6} />
+          </p>
+          <p className="mb-2 fs-14">
+            From about May 2027: detailed report to the Board due {new Date(incident.detailedReportDueAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}{' '}
             <Countdown due={incident.detailedReportDueAt} done={Boolean(incident.detailedReportSentAt)} warnHours={24} />
           </p>
           <p className="mb-3 fs-15">
@@ -70,7 +88,7 @@ const Breaches = ({ admin, permissions, denied, incidents = [] }) => {
               <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
                 <strong>{label}</strong>
                 {incident[field] ? (
-                  <span className="badge bg-success">Sent {new Date(incident[field]).toLocaleString('en-IN')}</span>
+                  <span className="badge bg-success">Sent {new Date(incident[field]).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</span>
                 ) : (
                   <button type="button" className="btn btn-sm bg-theme-dark text-white rounded" onClick={() => mark(incident.id, field)}>
                     Mark as sent now
@@ -92,7 +110,7 @@ const Breaches = ({ admin, permissions, denied, incidents = [] }) => {
               <BreachForm incident={incident} />
             </div>
           </details>
-          {incident.status !== 'CLOSED' && incident.detailedReportSentAt && incident.principalsIntimatedAt && (
+          {incident.status !== 'CLOSED' && incident.certInReportedAt && (
             <button type="button" className="btn btn-sm btn-white border text-title rounded mt-3" onClick={() => close(incident.id)}>
               Close incident
             </button>
@@ -113,6 +131,8 @@ export const getServerSideProps = adminProps('breaches', async ({ res }) => {
     props: {
       incidents: rows.map((incident) => ({
         ...incident,
+        certInDueAt: certInDueAt(incident),
+        certInDraft: draftCertInReport(incident),
         boardDraft: draftBoardIntimation(incident),
         reportDraft: draftBoardDetailedReport(incident),
         principalDraft: draftPrincipalNotice(incident)

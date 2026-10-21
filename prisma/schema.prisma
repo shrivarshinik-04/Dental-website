@@ -243,13 +243,16 @@ model AuditLog {
   @@index([entity, entityId])
 }
 
-// s.8(6) / Rule 7 personal data breach register.
+// Incident register (docs/BREACH-RESPONSE.md). Now: CERT-In Directions 2022, direction (ii):
+// report within 6 hours of noticing. From about May 2027: DPDP Act s.8(6) and Rules, Rule 7.
 model BreachIncident {
   id                          String       @id @default(cuid())
   createdAt                   DateTime     @default(now())
   updatedAt                   DateTime     @updatedAt
   status                      BreachStatus @default(OPEN)
-  detectedAt                  DateTime
+  detectedAt                  DateTime // when we noticed / became aware
+  incidentType                String? // CERT-In Annexure I category, e.g. "xi" (Data Breach)
+  certInReportedAt            DateTime? // CERT-In direction (ii): within 6 hours of noticing
   occurredAt                  DateTime? // timing (Rule 7(1)(a), 7(2)(a))
   location                    String? // where it occurred (Rule 7(1)(a), 7(2)(a))
   description                 String

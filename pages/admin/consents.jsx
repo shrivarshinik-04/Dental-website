@@ -81,7 +81,7 @@ const Consents = ({ admin, permissions, denied, records = [], filters = {}, tota
           <tbody>
             {records.map((r) => (
               <tr key={r.id}>
-                <td>{new Date(r.timestamp).toLocaleString('en-IN')}</td>
+                <td>{new Date(r.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
                 <td>{r.dataPrincipal?.referenceId || r.anonymousId?.slice(0, 8)}</td>
                 <td>{r.purpose}</td>
                 <td>

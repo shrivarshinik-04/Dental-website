@@ -34,7 +34,7 @@ const Grievances = ({ admin, permissions, denied, grievances = [] }) => (
             return (
               <tr key={g.id} className={overdue ? 'table-danger' : ''}>
                 <td>{g.referenceNumber}</td>
-                <td>{new Date(g.createdAt).toLocaleDateString('en-IN')}</td>
+                <td>{new Date(g.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
                 <td>
                   {g.verified ? `${g.principalRef} (verified)` : `${g.contactName}, ${g.contactDetail} (unverified)`}
                 </td>

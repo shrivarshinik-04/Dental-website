@@ -136,6 +136,7 @@ const optionalLong = text(4000, { multiline: true }).optional().nullable();
 export const breachSchema = z
   .object({
     detectedAt: z.coerce.date(),
+    incidentType: z.enum(['i', 'ii', 'iii', 'iv', 'v', 'vi', 'vii', 'viii', 'x', 'xi', 'xii', 'xvii', 'xviii', 'other']).optional().nullable(),
     occurredAt: z.coerce.date().optional().nullable(),
     location: text(300).optional().nullable(),
     description: requiredText(4000, { multiline: true }),
