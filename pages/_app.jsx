@@ -32,7 +32,9 @@ import 'assets/scss/style.scss';
 
 function MyApp({ Component, pageProps }) {
   const { pathname } = useRouter();
-  const [loading, setLoading] = useState(true);
+  // Page content is always server-rendered so notices, policies and contact details are in the
+  // HTML (readable without JavaScript). The loader only covers the page until hydration.
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') import('bootstrap');
@@ -46,7 +48,7 @@ function MyApp({ Component, pageProps }) {
     })();
   }, [pathname]);
 
-  useEffect(() => setLoading(false), []);
+  useEffect(() => setHydrated(true), []);
 
   return (
     <Fragment>
@@ -66,7 +68,8 @@ function MyApp({ Component, pageProps }) {
         <LanguageProvider>
           <Layout>
             <ThemeProvider>
-              {loading ? <div className="page-loader" /> : <Component {...pageProps} />}
+              {!hydrated && <div className="page-loader" aria-hidden="true" />}
+              <Component {...pageProps} />
             </ThemeProvider>
           </Layout>
         </LanguageProvider>

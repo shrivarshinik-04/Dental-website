@@ -17,7 +17,7 @@ const ThemeProvider = ({
   };
 
   useEffect(() => {
-    if (typeof window === undefined) return; // Change the color and font based on route
+    if (typeof window === 'undefined') return; // Change the color and font based on route
     let timer;
     timer = setTimeout(() => removePageLoader(), 1000);
     return () => clearTimeout(timer);

@@ -9,6 +9,10 @@ export default class SandBox extends Document {
           <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon/favicon-16x16.png" />
           <link rel="manifest" href="/img/favicon/site.webmanifest" />
           {/* Fonts are self-hosted via @fontsource (see _app.jsx): no third-party request on load. */}
+          {/* Without JavaScript the loader overlay is never removed, so hide it. */}
+          <noscript>
+            <style>{'.page-loader{display:none!important}'}</style>
+          </noscript>
         </Head>
         <body>
           <Main />

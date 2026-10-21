@@ -67,6 +67,10 @@ const BookAppointment = () => {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState({ busy: false, error: '', referenceId: '' });
+  // Set after mount: the server may be in another timezone than the visitor, and a
+  // different value would cause a hydration mismatch.
+  const [today, setToday] = useState('');
+  useEffect(() => setToday(localToday()), []);
 
   // A child's booking: no analytics or marketing for the rest of this session (s.9(3)).
   useEffect(() => {
@@ -246,7 +250,7 @@ const BookAppointment = () => {
                     <input
                       id="field-preferredDate"
                       type="date"
-                      min={localToday()}
+                      min={today || undefined}
                       className={`form-control${invalid('preferredDate')}`}
                       value={form.preferredDate}
                       onChange={set('preferredDate')}
