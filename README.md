@@ -146,6 +146,7 @@ npm test                        # e2e tests: builds into .next-test, uses a synt
 </code></pre>
 <p><code>.env.development.local</code> is read only by <code>next dev</code>, so production builds never pick up <code>DEMO_MODE</code> by accident.</p>
 <ul>
+  <li><strong>Existing database:</strong> after pulling new migrations (for example <code>guardian_details</code>, which adds the parent or guardian's mobile and email to bookings), run <code>npx prisma migrate deploy</code>. It applies only the new migrations and keeps existing rows.</li>
   <li><strong>Seed:</strong> <code>npx prisma db seed</code> (re-runnable) stores the notice text for each language as a <code>NoticeVersion</code>. It runs automatically after <code>migrate dev</code>.</li>
   <li><strong>One-time codes:</strong> no SMS or email provider is connected yet, so the Data Rights page and verified grievances need <code>DEMO_MODE=true</code> (see below). Without it the API answers "online verification is not available yet". Codes are never written to logs.</li>
 </ul>
@@ -173,7 +174,7 @@ npm test                        # e2e tests: builds into .next-test, uses a synt
     <tr><td>All organisation details (samples), retention periods, service providers, cookies</td><td><code>src/config/compliance.js</code></td></tr>
     <tr><td>Notice shown before the consent request: itemised data, purpose, recipients, choices, Grievance Officer (SPDI Rules 5(1), 5(3); DPDP s.5 and Rule 3 from about May 2027); English and Hindi</td><td><code>src/components/ConsentNotice.jsx</code>, <code>src/locales/</code>, <code>src/lib/i18n.js</code></td></tr>
     <tr><td>Versioned notice text stored with each consent</td><td><code>NoticeVersion</code>, <code>ConsentRecord</code> (<code>prisma/schema.prisma</code>), <code>src/lib/noticeContent.js</code></td></tr>
-    <tr><td>Appointment request: one unticked consent, guardian flow for minors</td><td><code>pages/book-appointment.jsx</code>, <code>pages/api/appointments.js</code></td></tr>
+    <tr><td>Appointment request: one unticked consent; parent or guardian details for a patient under 18</td><td><code>pages/book-appointment.jsx</code>, <code>src/components/GuardianFields.jsx</code>, <code>pages/api/appointments.js</code></td></tr>
     <tr><td>Cookie banner: off by default, equal Accept and Reject, reopen from the footer, withdrawal deletes cookies; not a cookie wall</td><td><code>src/components/CookieConsent.jsx</code>, <code>src/lib/consentStore.js</code>, <code>pages/api/consent.js</code></td></tr>
     <tr><td>First-party analytics that only runs after opt-in; withdrawal erases its data</td><td><code>public/js/analytics.js</code>, <code>pages/api/analytics.js</code>, <code>pages/admin/analytics.jsx</code></td></tr>
     <tr><td>Grievance Officer and privacy contact on every page, with the sample badge</td><td><code>src/components/ContactBlock.jsx</code>, <code>src/components/SampleBadge.jsx</code></td></tr>

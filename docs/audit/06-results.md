@@ -1,10 +1,11 @@
 # 06 — Test results, unresolved issues and evidence checklist (Phase 6)
 
-Date: 21 October 2026. Branch: `fix/dpdpa-audit` (baseline `c503b51`, last commit at the time of writing
-`8475124`). Deliverables 10 and 11 of `docs/REQUIREMENTS.md` §16.
+Date: 21 October 2026. Branch: `fix/dpdpa-audit` (baseline `c503b51`). First written at `8475124`; updated after
+the plain-language copy (Task A) and the parent or guardian details (Task B). Deliverables 10 and 11 of
+`docs/REQUIREMENTS.md` §16.
 
 This report records what was tested and how. It does not state that the site complies with any law: several
-conclusions depend on the legal confirmations listed in §3.
+conclusions depend on the legal confirmations listed in §4.
 
 ## 1. Checks run
 
@@ -13,7 +14,7 @@ conclusions depend on the legal confirmations listed in §3.
 | Production build | `npm run build` (into `.next-test`) | **Pass**: compiled, no errors or warnings |
 | Lint | `npm run lint` (ESLint 8, `next/core-web-vitals`) | **Pass**: 0 problems |
 | Type check | — | **Not applicable**: JavaScript project, no TypeScript |
-| End-to-end tests | `npm test` (Playwright 1.64.1, production build, synthetic `prisma/test.db`) | **Pass**: 37 passed, 0 failed |
+| End-to-end tests | `npm test` (Playwright 1.64.1, production build, synthetic `prisma/test.db`) | **Pass**: 49 passed, 0 failed |
 | Dependency audit | `npm audit --omit=dev` | **Fail (residual, assessed)**: 5 findings (1 critical, 4 high) in `next`, bundled `postcss`, and the Prisma CLI; none in a feature this site uses (see `docs/SECURITY.md` "Dependency status") |
 | Manual: production build over plain HTTP by IP | scratch build, Chromium at `http://<wsl-ip>:3100` | **Pass**: no HTTPS upgrade, styles and scripts load, banner renders |
 | Manual: `X-Forwarded-For` spoofing without `TRUST_PROXY` | 7 requests with different spoofed IPs | **Pass**: 6th request rate-limited (429) |
@@ -28,7 +29,7 @@ Status values as required: Pass · Fail · Not implemented · Not applicable · 
 | # | Case | Status | Evidence (test or check) |
 |---|---|---|---|
 | 1 | Privacy notice visible before consent, readable without JavaScript | Pass | `privacy.spec.js` "notice, policy and contact details are in the server HTML" |
-| 2 | Notice accurate for the law in force (SPDI Rules / s.43A) and labels DPDP as future | Pass (content) / **Needs legal confirmation** (legal positions in `02` §C) | same test checks "Which law applies", "SPDI Rules", "13 May 2027", no compliance claim |
+| 2 | Notice accurate for the law in force (SPDI Rules / s.43A) and labels DPDP as future | Pass (content) / **Needs legal confirmation** (legal positions in `02` §C) | same test checks "Laws that apply to us", the Act and Rules by title, "May 2027", no compliance claim |
 | 3 | Sample details clearly marked | Pass | same test ("Sample details: test environment"); `crawl.spec.js` |
 | 4 | Form data minimisation | Pass | `privacy.spec.js` "booking form collects only the listed fields; the API rejects anything else" |
 | 5 | Consent captured with timestamp, purpose, notice version, evidence | Pass | `privacy.spec.js` "booking through the UI …" (ConsentRecord + NoticeVersion with substituted details) |
@@ -53,7 +54,7 @@ Status values as required: Pass · Fail · Not implemented · Not applicable · 
 | 24 | No secrets or database files served | Pass | `security.spec.js` "no secrets or database files are served" |
 | 25 | External data flows on first load | Pass (none) | `privacy.spec.js` "first load: no cookies, no browser storage, no third-party requests" |
 | 26 | Error handling | Pass | `privacy.spec.js` "error handling …"; `crawl.spec.js` 404 |
-| 27 | Child-data safeguards (guardian, no optional choices, analytics off) | Pass (design) / **Needs legal confirmation** (Fourth Schedule exemption) | `privacy.spec.js` "child safeguards …" |
+| 27 | Child-data safeguards (guardian, no optional choices, analytics off) | Pass (design) / **Needs legal confirmation** (Fourth Schedule exemption; formal verification of guardianship) | `privacy.spec.js` "child safeguards …"; `guardian.spec.js` (5 tests, see row 37) |
 | 28 | Incident handling: CERT-In 6-hour clock, procedure, owner | Pass (register and procedure) / **Not implemented** (CERT-In Point of Contact registration, automated detection) | `admin.spec.js` "incident register …"; `docs/BREACH-RESPONSE.md` |
 | 29 | Deployment configuration: `FORCE_HTTPS`, `TRUST_PROXY`, `DEMO_MODE` guard | Pass | `security.spec.js` "DEMO_MODE is refused …"; manual HTTP-by-IP check |
 | 30 | HTTPS hosting in India, backups, 180-day infrastructure logs | **Not implemented** (no hosting chosen) | `docs/SECURITY.md` "Not implemented" |
@@ -62,6 +63,8 @@ Status values as required: Pass · Fail · Not implemented · Not applicable · 
 | 33 | Tabs/toggles: keyboard, focus, ARIA, state | Pass | `interactions.spec.js` banner, language, booking, grievance, admin tests |
 | 34 | Zero console errors or warnings on every page | Pass | `crawl.spec.js` |
 | 35 | Node version pinned, setup documented | Pass | `.nvmrc`, `engines`, README |
+| 36 | Public text names laws by title only, with no section, rule or schedule numbers (English and Hindi, every public page, banner, booking form with the child option, rights dashboard, API messages); banner asks again after the notice changes | Pass | `plain-language.spec.js` |
+| 37 | Parent or guardian details for a patient under 18: section hidden by default, shown inline for a minor with a polite announcement and focus on the first field, cleared when switched back; keyboard order and 375px; client and server validation with field-level errors; an adult's crafted guardian fields not stored; encrypted at rest; no analytics; consent given by the guardian, linked to the booking, current notice version; one-time code to the guardian's contact; shown, corrected and erased through the rights page; staff views audited | Pass | `guardian.spec.js`; `rights.spec.js` "returning patient …" |
 
 ## 3. Defect status (`05-bugs.md`)
 
@@ -102,29 +105,37 @@ Found and fixed during Phase 5 (`efc7673`): `/admin` returned 500 for wrong or t
 7. Clinical-record retention period (placeholder 3 years).
 8. Data Protection Board official complaint URL (site shows "official complaint link to be confirmed").
 9. Real organisation details, Grievance Officer, privacy contact, hosting and processors (all samples now).
-10. Professional review of the Hindi text; policy pages are English only.
+10. Professional review of the Hindi text, including the rewritten notice and the new guardian strings
+    (`booking.guardian*`, `rights.contactHint`, `rights.fields.guardian*`); policy pages are English only.
+11. **Formal verification of guardianship.** The form takes the guardian's declaration only: no date of birth, ID
+    documents or proof of guardianship are collected (by design, to collect as little as possible). Whether a
+    declaration is enough, or whether the clinic must verify guardianship (DPDP Rule 10 "verifiable consent", from
+    about May 2027; or at the clinic on the day of the visit), needs legal confirmation.
 
 ### Technical, not implemented in this phase
-11. No SMS/email provider: production verification relies on `DEMO_MODE` with `ALLOW_DEMO_IN_PROD`, which is only
+12. No SMS/email provider: production verification relies on `DEMO_MODE` with `ALLOW_DEMO_IN_PROD`, which is only
     acceptable in a closed test environment with synthetic data.
-12. Processor stop/erase hooks are documented TODOs (no processor exists).
-13. Hosting: HTTPS, India region, backups and restore tests, 180-day infrastructure logs, NTP, CERT-In Point of
+13. Processor stop/erase hooks are documented TODOs (no processor exists).
+14. Hosting: HTTPS, India region, backups and restore tests, 180-day infrastructure logs, NTP, CERT-In Point of
     Contact registration, log forwarding and alerting.
-14. Next.js 15.5 / Prisma 7 upgrades to clear the residual `npm audit` findings.
-15. Rate limiting is in-memory (single instance); a shared store is needed for more than one instance.
-16. Admin authentication is HTTP Basic with role checks and throttling; no MFA or SSO.
-17. Unverified grievances (no reference ID) are accepted without verification (rate-limited).
-18. Legacy `APPOINTMENT_REMINDERS_SMS_WHATSAPP` / `MARKETING` enum values remain so older ledger rows stay readable.
-19. Template marketing copy (e.g. Lorem ipsum in the home Services section, "10 Years of Dental Excellence") is
+15. Next.js 15.5 / Prisma 7 upgrades to clear the residual `npm audit` findings.
+16. Rate limiting is in-memory (single instance); a shared store is needed for more than one instance.
+17. Admin authentication is HTTP Basic with role checks and throttling; no MFA or SSO.
+18. Unverified grievances (no reference ID) are accepted without verification (rate-limited).
+19. Legacy `APPOINTMENT_REMINDERS_SMS_WHATSAPP` / `MARKETING` enum values remain so older ledger rows stay readable.
+20. Template marketing copy (e.g. Lorem ipsum in the home Services section, "10 Years of Dental Excellence") is
     unchanged sample content.
-20. **`prisma/dev.db` contains one record created through the form by a person after the previous agent's tests;
+21. **`prisma/dev.db` contains one record created through the form by a person after the previous agent's tests;
     it may be real personal data.** Reset it yourself with `npx prisma migrate reset` (not run by the agent).
+22. No booking confirmations are sent automatically (no SMS or email provider). For a patient under 18, staff see
+    the guardian's mobile and email in `/admin/appointments` and use them; one-time codes for the rights page go to
+    the guardian's contact.
 
 ## 5. Evidence checklist for the Zycato assessment (deliverable 11)
 
 | Control | Where to see it | File(s) | Database table / log |
 |---|---|---|---|
-| Law in force vs future provisions | `/privacy-policy` §2, §10 | `pages/privacy-policy.jsx`; `docs/audit/02-legal-matrix.md` | — |
+| Law in force vs future provisions | `/privacy-policy` "Laws that apply to us" and "What changes in 2027" | `pages/privacy-policy.jsx`; `docs/audit/02-legal-matrix.md` | — |
 | Notice before consent (itemised data, purpose, recipients, choices, contacts) | `/book-appointment` (also without JavaScript) | `src/components/ConsentNotice.jsx`, `src/locales/en.json`, `hi.json` | `NoticeVersion` (text + substituted details + hash) |
 | Notice versioning | Policy change log; `/admin/consents` notice column | `src/config/compliance.js` (`NOTICE_VERSION`, `POLICY_CHANGELOG`) | `NoticeVersion`, `ConsentRecord.noticeVersionId` |
 | Language option (English + Hindi) | Language switcher on banner and forms | `src/lib/i18n.js` | `ConsentRecord.language` |
@@ -144,7 +155,8 @@ Found and fixed during Phase 5 (`efc7673`): `/admin` returned 500 for wrong or t
 | Security headers | Response headers of any page | `next.config.js`, `src/lib/env.js` | — |
 | Retention | `docs/RETENTION.md` | `scripts/retention.js`, `RETENTION` in config | `AuditLog` (RETENTION_RUN, DELETE) |
 | Incident handling | `/admin/breaches`; `docs/BREACH-RESPONSE.md` | `src/lib/breach.js` | `BreachIncident` (`certInReportedAt`, deadlines) |
-| Children | `/book-appointment` → "under 18? Yes" | `pages/book-appointment.jsx`, `src/lib/consentStore.js` | `Appointment.patientIsMinor`, guardian fields; `ConsentRecord.givenByGuardian` |
+| Children: parent or guardian details | `/book-appointment` → "under 18? Yes"; `/data-rights` (sign in with the guardian's contact); `/admin/appointments` | `pages/book-appointment.jsx`, `src/components/GuardianFields.jsx`, `src/lib/validation.js` (`appointmentSchema`), `src/lib/rights.js` (`contactsFor`), `src/lib/consentStore.js` | `Appointment.patientIsMinor`, `guardianName`, `guardianRelationship`, `guardianPhone`, `guardianEmail` (encrypted); `ConsentRecord.givenByGuardian`, `appointmentId`; `AuditLog` entity `GuardianDetails` (READ) |
+| Plain-language public text | Any public page, in English and Hindi | `pages/privacy-policy.jsx`, `src/locales/*.json` (citations kept in code comments and `docs/`) | — |
 | Third parties and processors | `/privacy-policy` §5 ("not yet configured") | `docs/audit/04-third-parties.md`, `PROCESSORS` in config | — |
 | Sample-data disclosure | Badge beside every contact block | `src/components/SampleBadge.jsx` | `NoticeVersion.content.vars.isSample` |
 | Test evidence | `npm test` output; `test-results/results.json` | `tests/e2e/*.spec.js`, `playwright.config.js` | synthetic `prisma/test.db` |

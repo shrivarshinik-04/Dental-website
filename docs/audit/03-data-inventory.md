@@ -33,6 +33,22 @@ generic message (`src/lib/http.js:89`). Storage is SQLite `prisma/dev.db` on the
 Destinations: browser → Next.js API route → SQLite. Shown to staff on `/admin/appointments` (decrypted, audited).
 **Gap:** staff cannot see the reminder/marketing choices, so even a manual reminder could ignore them.
 
+**Update, 21 October 2026 (after the audit).** The reminder and marketing consents were removed (decision D3).
+Booking fields for a patient under 18 now differ from an adult's:
+
+| Field | Adult patient | Patient under 18 | Storage |
+|---|---|---|---|
+| Patient name | Required | Required | `DataPrincipal.name`, encrypted |
+| Patient mobile, email | Mobile required, email optional | **Not collected** (discarded by the server if sent) | `DataPrincipal.phone/email`, encrypted; null for a minor |
+| Guardian full name, relationship (Parent / Legal guardian) | Discarded if sent | Required | `Appointment.guardianName/guardianRelationship`, encrypted |
+| Guardian mobile | Discarded if sent | Required; used for the rights-page one-time code and by staff to confirm | `Appointment.guardianPhone`, encrypted |
+| Guardian email | Discarded if sent | Optional; one-time code alternative | `Appointment.guardianEmail`, encrypted |
+| Guardian declaration | — | Required (unticked by default) | `ConsentRecord.givenByGuardian = true`, `ConsentRecord.appointmentId` links the consent to the booking |
+
+No date of birth, ID document or proof of guardianship is collected (open item in `06-results.md` §4). Guardian
+details are deleted with the booking (erasure, retention job) and staff views are logged as `AuditLog` entity
+`GuardianDetails`. Migration: `prisma/migrations/20261021111356_guardian_details`.
+
 ## 2. Cookie banner — `CookieConsent` → `POST /api/consent`
 
 | Field | Purpose | Necessary? | Basis | Storage | Retention |
