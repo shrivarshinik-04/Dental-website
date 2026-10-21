@@ -14,7 +14,7 @@ conclusions depend on the legal confirmations listed in §4.
 | Production build | `npm run build` (into `.next-test`) | **Pass**: compiled, no errors or warnings |
 | Lint | `npm run lint` (ESLint 8, `next/core-web-vitals`) | **Pass**: 0 problems |
 | Type check | — | **Not applicable**: JavaScript project, no TypeScript |
-| End-to-end tests | `npm test` (Playwright 1.64.1, production build, synthetic `prisma/test.db`) | **Pass**: 76 passed, 0 failed; stored-data check over every record the run creates: no problems |
+| End-to-end tests | `npm test` (Playwright 1.64.1, production build, synthetic `prisma/test.db`) | **Pass**: 77 passed, 0 failed; stored-data check over every record the run creates: no problems |
 | Dependency audit | `npm audit --omit=dev` | **Fail (residual, assessed)**: 5 findings (1 critical, 4 high) in `next`, bundled `postcss`, and the Prisma CLI; none in a feature this site uses (see `docs/SECURITY.md` "Dependency status") |
 | Manual: production build over plain HTTP by IP | scratch build, Chromium at `http://<wsl-ip>:3100` | **Pass**: no HTTPS upgrade, styles and scripts load, banner renders |
 | Manual: `X-Forwarded-For` spoofing without `TRUST_PROXY` | 7 requests with different spoofed IPs | **Pass**: 6th request rate-limited (429) |
@@ -157,7 +157,7 @@ Found and fixed during Phase 5 (`efc7673`): `/admin` returned 500 for wrong or t
 | Security headers | Response headers of any page | `next.config.js`, `src/lib/env.js` | — |
 | Retention | `docs/RETENTION.md` | `scripts/retention.js`, `RETENTION` in config | `AuditLog` (RETENTION_RUN, DELETE) |
 | Incident handling | `/admin/breaches`; `docs/BREACH-RESPONSE.md` | `src/lib/breach.js` | `BreachIncident` (`certInReportedAt`, deadlines) |
-| Children: parent or guardian details | `/book-appointment` → "under 18? Yes"; `/data-rights` (sign in with the guardian's contact); `/admin/appointments` | `pages/book-appointment.jsx`, `src/components/GuardianFields.jsx`, `src/lib/validation.js` (`appointmentSchema`), `src/lib/rights.js` (`contactsFor`), `src/lib/consentStore.js` | `Appointment.patientIsMinor`, `guardianName`, `guardianRelationship`, `guardianPhone`, `guardianEmail` (encrypted); `ConsentRecord.givenByGuardian`, `appointmentId`; `AuditLog` entity `GuardianDetails` (READ) |
+| Children: parent or guardian details | `/book-appointment` → "under 18? Yes"; `/data-rights` (sign in with the guardian's contact); `/admin/patients`, `/admin/appointments` | `pages/book-appointment.jsx`, `src/components/GuardianFields.jsx`, `src/lib/validation.js` (`appointmentSchema`), `src/lib/rights.js` (`contactsFor`), `src/lib/consentStore.js` | `Appointment.patientIsMinor`; `Guardian` table (name, relationship, phone, email, encrypted; linked to the booking and the patient); `ConsentRecord.givenByGuardian`, `appointmentId`; `AuditLog` entity `Guardian` (READ) |
 | Plain-language public text | Any public page, in English and Hindi | `pages/privacy-policy.jsx`, `src/locales/*.json` (citations kept in code comments and `docs/`) | — |
 | Third parties and processors | `/privacy-policy` §5 ("not yet configured") | `docs/audit/04-third-parties.md`, `PROCESSORS` in config | — |
 | Sample-data disclosure | Badge beside every contact block | `src/components/SampleBadge.jsx` | `NoticeVersion.content.vars.isSample` |

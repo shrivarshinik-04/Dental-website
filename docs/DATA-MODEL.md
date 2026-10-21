@@ -15,8 +15,10 @@ The e2e suite runs the same checks over every record its tests store (`tests/e2e
 ## How the tables fit together
 
 ```
-DataPrincipal (one per patient; reference ID DP-XXXXXX)
- ├── Appointment        one per booking; guardian details on bookings for a patient under 18
+DataPrincipal (one per patient; reference ID DP-XXXXXX; name encrypted)
+ ├── Appointment        one per booking
+ │    └── Guardian      parent or guardian, only on a booking for a patient under 18 (own table)
+ ├── Guardian           the same rows, reachable from the patient's record
  ├── ConsentRecord      one per consent decision (append-only)  ──► NoticeVersion (text shown)
  │                       └── appointmentId ──► the booking whose guardian gave the consent
  ├── RightsRequest      one per Data Rights action (access, correction, erasure, withdrawal, nominee)
@@ -48,8 +50,8 @@ Rules that keep the data in order:
 | Mobile number (adult) | `DataPrincipal.phone` | encrypted, 10 digits (`+91`, spaces removed) |
 | Email (adult, optional) | `DataPrincipal.email` | encrypted, lower case; empty → null |
 | Under 18? | `Appointment.patientIsMinor` | true / false |
-| Guardian's full name, relationship | `Appointment.guardianName`, `guardianRelationship` | encrypted (`PARENT` / `LEGAL_GUARDIAN`) |
-| Guardian's mobile, email (optional) | `Appointment.guardianPhone`, `guardianEmail` | encrypted, normalised as above |
+| Guardian's full name, relationship | `Guardian.name`, `Guardian.relationship` | encrypted (`PARENT` / `LEGAL_GUARDIAN`) |
+| Guardian's mobile, email (optional) | `Guardian.phone`, `Guardian.email` | encrypted, normalised as above |
 | Guardian's declaration | `ConsentRecord.givenByGuardian = true`, `ConsentRecord.appointmentId` | — |
 | Service | `Appointment.service` | encrypted (reveals a health condition) |
 | Preferred date, time | `Appointment.preferredDate` (midnight IST), `preferredSlot` | plain (`MORNING` / `EVENING`) |
@@ -57,8 +59,10 @@ Rules that keep the data in order:
 | Consent tick | `ConsentRecord` (purpose `APPOINTMENT`, status `GIVEN`, channel `APPOINTMENT_FORM`) | with notice version, language, IP hash, browser type |
 | — (generated) | `DataPrincipal.referenceId`, `Appointment.status = REQUESTED` | — |
 
-For a patient under 18, `DataPrincipal.phone` and `email` stay null: the guardian's contact on the booking is used
-for one-time codes and for staff to confirm.
+For a patient under 18, `DataPrincipal.phone` and `email` stay null. The guardian's details are a separate `Guardian`
+row, one per booking (the declaration is made per booking), linked to the booking (`appointmentId`) and to the
+patient (`dataPrincipalId`, so to the reference ID). It is deleted with the booking. The guardian's contact is used for
+one-time codes and for staff to confirm.
 
 ## Cookie banner (`POST /api/consent`)
 
@@ -73,7 +77,7 @@ for one-time codes and for staff to confirm.
 | Form | Stored in | Notes |
 |---|---|---|
 | Sign-in: reference ID + mobile or email | `OtpChallenge` | code stored as a keyed hash; nothing stored if the details do not match |
-| Correction (name, phone, email; guardian details) | `DataPrincipal` or `Appointment` columns (encrypted); `RightsRequest` type `CORRECTION` / `COMPLETION` / `UPDATE` | the request keeps only the **names** of the changed fields |
+| Correction (name, phone, email; guardian details) | `DataPrincipal` or `Guardian` columns (encrypted); `RightsRequest` type `CORRECTION` / `COMPLETION` / `UPDATE` | the request keeps only the **names** of the changed fields |
 | Withdraw consent | new `ConsentRecord` (`WITHDRAWN`, channel `PREFERENCE_CENTRE`); `Appointment.status = CANCELLED`; `RightsRequest` `WITHDRAW_CONSENT` | |
 | Nominee | `RightsRequest` type `NOMINATION`, `payload.nominee` encrypted | latest one is the current nominee |
 | Download | `RightsRequest` type `ACCESS` | |
@@ -97,7 +101,12 @@ for one-time codes and for staff to confirm.
 | Rights request response | `RightsRequest.status`, `response.message`, `respondedAt` |
 | Incident form | `BreachIncident` (plain text: do not enter patient details); report deadline = detected + 72 h |
 
-Every staff view, change and export is logged in `AuditLog` (views of guardian details as entity `GuardianDetails`).
+Every staff view, change and export is logged in `AuditLog` (views of guardian details as entity `Guardian`).
+
+**Reading records as staff.** The database keeps names encrypted, so a database viewer shows `v1:…`. Signed-in staff
+see each reference ID with the patient's name: `/admin/patients` lists every patient with their name, contact, whether
+they are under 18 and their parent or guardian; the consent log, rights requests, grievances and nominations show the
+name under the reference ID. The consent CSV export stays name-free (it is evidence that may be shared).
 
 ## Applying schema changes to an existing database
 
@@ -105,4 +114,5 @@ Every staff view, change and export is logged in `AuditLog` (views of guardian d
 npx prisma migrate deploy   # applies only new migrations; keeps existing rows
 ```
 
-Migrations are additive. The latest, `lookup_indexes`, only adds indexes for lookups by person and by booking.
+`guardian_table` moves guardian details from `Appointment` into the new `Guardian` table: values are copied as they are
+(still encrypted), then the old columns are removed. `lookup_indexes` only adds indexes.
