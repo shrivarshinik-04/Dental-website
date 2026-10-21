@@ -1,76 +1,50 @@
-# Security safeguards
+# Security controls (test environment)
 
-How this site meets the "reasonable security safeguards" duty in **s.8(5) of the DPDP Act, 2023** and the minimum measures in **Rule 6 of the DPDP Rules, 2025**. Keep this document up to date. It is part of the evidence you would show the Data Protection Board after an incident.
+What this site implements, mapped to the security requirements that apply now and to those expected later. It
+describes controls; it does not claim that they are sufficient for any law. Organisation details are samples.
 
-## Rule 6(1)(a): encryption, obfuscation, masking
+- **In force now:** IT Act 2000 s.43A and SPDI Rules 2011, Rule 8 (reasonable security practices and a documented
+  information security programme); CERT-In Directions of 28 April 2022 (6-hour incident reporting; logs kept 180
+  days within India).
+- **Expected from about 13 May 2027 (date to be confirmed):** DPDP Act 2023 s.8(5) and DPDP Rules 2025, Rule 6.
 
-| Data | Protection | Where |
-| --- | --- | --- |
-| Name, phone, email (DataPrincipal) | AES-256-GCM, random IV per value | `src/lib/crypto.js` |
-| Service, reason for visit, guardian details (Appointment) | AES-256-GCM | `pages/api/appointments.js` |
-| Nominee details, grievance text and contact | AES-256-GCM | `pages/api/rights/nominate.js`, `pages/api/grievances.js` |
-| IP addresses | Never stored. HMAC-SHA-256 with `IP_HASH_SALT` | `src/lib/http.js` |
-| One-time codes | Stored only as HMAC-SHA-256 | `pages/api/rights/request-otp.js` |
-| Admin passwords | PBKDF2-SHA-256, 210,000 iterations | `src/lib/adminAuth.js` |
-| Data in transit | HTTPS only: HSTS (2 years, preload) and `upgrade-insecure-requests` | `next.config.js` |
+## Implemented in the application
 
-**Key management.** `ENCRYPTION_KEY`, `IP_HASH_SALT` and `SESSION_SECRET` must live in your host's secret store, not in the repository. Losing `ENCRYPTION_KEY` makes encrypted data unreadable. Back it up offline, separately from the database backups. Rotating the key requires a re-encryption script: the `v1:` prefix on ciphertext exists so a `v2` key can be introduced.
+| Area | Control | Where |
+|---|---|---|
+| Encryption at rest | Name, phone, email, service, reason for visit, guardian details, nominee details and grievance text: AES-256-GCM, random IV per value | `src/lib/crypto.js` |
+| Hashing | IP addresses never stored: HMAC-SHA-256 with `IP_HASH_SALT`. One-time codes stored only as HMAC. Admin passwords: PBKDF2-SHA-256, 210,000 iterations | `src/lib/http.js`, `pages/api/rights/request-otp.js`, `src/lib/adminAuth.js` |
+| Transport | With `NODE_ENV=production` and `FORCE_HTTPS=true`: HSTS (2 years), `upgrade-insecure-requests`, COOP, `Secure` cookies. Without the flag (plain-HTTP test deployments) these are not sent | `next.config.js`, `src/lib/env.js` |
+| Client IP | `X-Forwarded-For` used only with `TRUST_PROXY=true`; otherwise the socket address (prevents spoofing past rate limits) | `src/lib/http.js` |
+| Access control | `/admin/*` and `/api/admin/*`: HTTP Basic auth, roles `admin`, `dpo`, `reception`; verified and role-checked server-side on every request; 10 failed sign-ins per IP → blocked for 15 minutes | `middleware.js`, `src/lib/adminGuard.js` |
+| Data subject verification | One-time code to the registered phone or email; 15-minute signed HttpOnly session. `DEMO_MODE` shows codes on screen (refused in production unless `ALLOW_DEMO_IN_PROD=true`) | `pages/api/rights/*`, `src/lib/rightsSession.js`, `src/lib/notify.js` |
+| CSRF | State-changing endpoints reject cross-site requests (Origin/Referer check); cookies `SameSite=Lax` | `src/lib/http.js` |
+| Input handling | zod validation on every API input, unknown fields rejected, control characters stripped, lengths capped; React output encoding | `src/lib/validation.js` |
+| Abuse control | Per-IP rate limits on public endpoints; swappable store (in-memory: single instance only) | `src/lib/rateLimit.js` |
+| Logging | `AuditLog` records every create, read, update, delete and export of personal data by staff and by the system (identifiers and hashed IP only). Application logs carry no request bodies or personal data; one-time codes are never logged | `src/lib/audit.js`, `src/lib/http.js` |
+| Headers | CSP limited to same origin, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`; `Cache-Control: no-store` on API and admin responses | `next.config.js` |
+| Exports | CSV export escapes spreadsheet formula injection | `pages/api/admin/consents-export.js` |
+| Third parties | No third-party script, font or request; fonts self-hosted | `pages/_app.jsx` |
 
-## Rule 6(1)(b): access control
+## Not implemented (owner actions)
 
-* `/admin/*` and `/api/admin/*` require HTTP Basic auth over HTTPS (`middleware.js`). Each page and API route checks the credentials again, plus the role (`src/lib/adminAuth.js`):
-  * `admin`: everything
-  * `dpo` (Grievance Officer): everything
-  * `reception`: appointments only
-* Create one account per person (`npm run admin:hash-password`) and never share accounts. Remove leavers from `ADMIN_USERS` the same day.
-* Data Principals reach their own data only after OTP verification (Rule 14(1)). The session lasts 15 minutes in an httpOnly, SameSite=Lax cookie.
-* All state-changing endpoints reject cross-site requests (Origin check in `src/lib/http.js`).
+| Item | Requirement | Recommended approach |
+|---|---|---|
+| Documented information security programme and audit | SPDI Rule 8 | Adopt IS/ISO/IEC 27001 or an approved code; record policies and an annual audit |
+| HTTPS hosting in India | SPDI Rule 8; CERT-In (iv) | Host in India, terminate TLS, redirect HTTP→HTTPS, build with `FORCE_HTTPS=true` |
+| Backups | Availability (DPDP Rule 6(1)(d) from May 2027) | Managed PostgreSQL in India with daily encrypted snapshots, 30-day retention; keep `ENCRYPTION_KEY` backed up separately; quarterly restore test. Expired backups are the only deletion path for backup copies; re-apply erasure requests after any restore |
+| Infrastructure logs for 180 days within India | CERT-In (iv) | Configure at the host; `AuditLog` covers the application only |
+| Clock synchronisation | CERT-In (i) | NTP with NIC/NPL servers at the host |
+| Shared rate-limit store | Multiple instances | Implement the store interface in `src/lib/rateLimit.js` over Redis |
+| Key management | — | Keep `ENCRYPTION_KEY`, `IP_HASH_SALT`, `SESSION_SECRET` in a secret manager; the `v1:` ciphertext prefix allows key rotation with a re-encryption script |
+| Log forwarding and alerting | SPDI Rule 8 | Forward server logs; alert on repeated failed sign-ins and one-time-code failures |
 
-## Rule 6(1)(c): visibility of access (logging and monitoring)
+## Incidents
 
-* `AuditLog` records every create, read, update, delete and export of personal data, with the actor, entity, ID, time and hashed IP. Admin page views log one READ entry per record shown.
-* Application logs never contain request bodies or personal data. Errors log only the route and the error code.
-* **To do for the owner:** forward server logs to a monitored store and set alerts (for example, many failed OTP or admin logins).
+See `docs/BREACH-RESPONSE.md` (CERT-In report within 6 hours of noticing, now; DPDP Rule 7 notices from about May
+2027).
 
-## Rule 6(1)(d): continued processing after compromise (backups)
+## Dependency status
 
-Recommended approach. Adapt it to your host and record what you actually do.
-
-1. **Database.** Use the managed PostgreSQL provider's automated daily snapshots with point-in-time recovery, keep them for 30 days, store them encrypted, in India and in a different availability zone.
-2. **Keys.** Keep an offline, encrypted copy of `.env` secrets (for example in a password manager vault that two people can access). It is kept separately from the database backups.
-3. **Restore test.** Every quarter, restore the latest backup to a staging database, start the app against it, and confirm a known record decrypts. Write down the date and the result.
-4. **Erasure and backups.** Backups expire on their normal schedule. If you restore one, re-run `npm run retention` and re-apply erasure requests logged in `RightsRequest` since the backup date before going live.
-
-## Rule 6(1)(e): log retention
-
-`AuditLog` and processing logs are kept for at least one year (Rule 8(3)). `scripts/retention.js` refuses to delete logs, consent records or request records younger than `MIN_LOG_RETENTION_DAYS` (365) whatever `RETENTION` says.
-
-## Rule 6(1)(f) and (g): Processors and technical measures
-
-* Every Processor in `PROCESSORS` (`src/config/compliance.js`) needs a written contract requiring equivalent safeguards, breach notice to you without delay, and erasure on instruction (s.8(2), s.8(7)(b)).
-* `instructProcessors` in `src/lib/notify.js` and the hook in `scripts/retention.js` are TODOs. Wire them to each provider's deletion or opt-out API.
-
-## Application hardening
-
-* zod validation on every API input, with unknown fields rejected (`.strict()`). Control characters are stripped. Lengths are capped.
-* Per-IP rate limits on every public endpoint. The limiter is in-memory, so use Redis or similar when running more than one instance.
-* Security headers in `next.config.js`: CSP with only same-origin resources, `frame-ancestors 'none'`, `X-Frame-Options: DENY`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`.
-* `Cache-Control: no-store` on all API and admin responses.
-* CSV export escapes formula-injection characters.
-* No third-party scripts, fonts or requests. Fonts are self-hosted. Anything optional loads only through `loadScriptIfConsented`.
-
-## Breach response (s.8(6), Rule 7)
-
-1. Contain the incident, then record it at `/admin/breaches` straight away. This starts the 72-hour clock.
-2. Send the **initial intimation to the Board** and the **notice to affected Data Principals** without delay, using the generated drafts after counsel review. Click "Mark as sent" for each.
-3. Send the **detailed report** within 72 hours of becoming aware (Rule 7(2)(b)). Keep all evidence.
-
-## Production checklist
-
-- [ ] Served only over HTTPS, with HTTP redirected to HTTPS at the host or load balancer
-- [ ] PostgreSQL in India, encrypted at rest, automated backups and a quarterly restore test
-- [ ] Secrets in a secret manager; `.env` not deployed from the repository
-- [ ] SMS and email providers wired in `src/lib/notify.js` (OTP fails closed in production until then)
-- [ ] `npm run retention` scheduled daily
-- [ ] Admin accounts per person, with strong passwords; leavers removed
-- [ ] Log forwarding and alerts configured
+`npm audit` findings and their applicability are tracked in `docs/audit/05-bugs.md` (B-30). Next.js is patched
+within the 14.2 line; advisories fixed only in Next 15 / Prisma 7 are documented with their applicability.

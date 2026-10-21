@@ -188,9 +188,9 @@ export const erasePrincipal = async (tx, principal, { noticeVersionId, language,
           appointments: retained.length,
           fields: ['name', 'phone', 'appointment date', 'service', 'reason for visit'],
           reason:
-            'These visits are part of your clinical record, which we must keep by law for the period required by medical regulations.',
+            'These visits are part of your clinical record, which we must keep by law for the period required by medical record-keeping rules.',
           legalBasis:
-            'DPDP Act 2023, s.8(7): personal data is erased "unless retention is necessary for compliance with any law for the time being in force". Clinical records must be kept under the medical record-keeping rules that apply to the clinic.',
+            'SPDI Rules 2011, Rule 5(4): information may be kept as long as required under any other law in force. Clinical records must be kept under the medical record-keeping rules that apply to the clinic (period to be confirmed). From about May 2027: DPDP Act 2023, s.8(7) (erasure "unless retention is necessary for compliance with any law").',
           retainUntilApprox: `${RETENTION.clinicalRecordDays} days after the visit`
         }
       : null,

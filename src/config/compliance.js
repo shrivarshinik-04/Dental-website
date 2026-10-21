@@ -132,12 +132,13 @@ const PROCESSORS = [
 // src/locales/*.json changes: visitors are re-prompted and new consents point to
 // the new NoticeVersion row.
 // ---------------------------------------------------------------------------
-const NOTICE_VERSION = '2026-10-21.1';
+const NOTICE_VERSION = '2026-10-21.2';
 const NOTICE_EFFECTIVE_FROM = '2026-10-21';
 
 const POLICY_CHANGELOG = [
   { version: '2026-10-20.1', date: '2026-10-20', change: 'First version.' },
-  { version: '2026-10-21.1', date: '2026-10-21', change: 'Removed optional appointment-reminder and marketing consents: no reminder or marketing process exists.' }
+  { version: '2026-10-21.1', date: '2026-10-21', change: 'Removed optional appointment-reminder and marketing consents: no reminder or marketing process exists.' },
+  { version: '2026-10-21.2', date: '2026-10-21', change: 'Notice and policy now describe the law in force (IT Act s.43A, SPDI Rules 2011, CERT-In Directions) and label DPDP Act 2023 provisions as expected from about 13 May 2027; added who receives the data; sample organisation details.' }
 ];
 
 // s.5(3) / s.6(3): English plus languages from the Eighth Schedule. Add a locale

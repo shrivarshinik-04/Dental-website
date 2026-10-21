@@ -20,7 +20,7 @@
   },
   "notice": {
     "title": "Privacy notice",
-    "intro": "{clinic} ({legalName}) decides why and how your personal data is used, and is the \"Data Fiduciary\" under the Digital Personal Data Protection Act, 2023. Please read this notice before you agree. You only need to tick the boxes you agree to.",
+    "intro": "{clinic} ({legalName}) collects the information below to handle your appointment request. Please read this notice before you agree. The service you choose and any reason for your visit are sensitive personal data under the Information Technology (SPDI) Rules, 2011, so we ask for your consent first. You only need to tick the box if you agree.",
     "dataHeading": "Personal data we collect here",
     "data": {
       "name": "Name of the patient",
@@ -53,11 +53,13 @@
         "description": "Measure our advertising and show relevant offers. Optional, off unless you turn it on. We do not use any today."
       }
     },
-    "rightsHeading": "Your rights",
-    "withdraw": "You can withdraw your consent at any time, as easily as you gave it: use \"Cookie settings\" at the bottom of any page, or one click per purpose on the Data Rights page with your reference ID. Processing stops from then on; it does not undo processing already done.",
-    "rights": "You can get a summary of your data, correct, complete or update it, ask us to erase it, and nominate someone to act for you, on the Data Rights page.",
-    "grievance": "If you have a complaint, use the Grievance page or contact our Grievance Officer. We reply within {grievanceDays} days.",
-    "board": "If you are not satisfied with our reply, you can complain to the {board}.",
+    "recipientsHeading": "Who receives it",
+    "recipients": "Only our clinic staff who handle appointments, each with access limited to their role. We do not share it with other organisations unless a law requires us to. No SMS, WhatsApp or email provider is used yet.",
+    "rightsHeading": "Your choices",
+    "withdraw": "You can withdraw your consent at any time, as easily as you gave it: use \"Cookie settings\" at the bottom of any page, or one click on the Data Rights page with your reference ID. We then stop using the data for that purpose; this does not undo what was done before.",
+    "rights": "You can review and correct your information, and ask us to delete what we are not required to keep, on the Data Rights page.",
+    "grievance": "If you have a complaint, contact our Grievance Officer or use the Grievance page. We resolve grievances within one month.",
+    "board": "From about 13 May 2027 (date to be confirmed), the Digital Personal Data Protection Act, 2023 is expected to add further rights, including complaining to the {board} after using our grievance process.",
     "contactHeading": "Who to contact",
     "links": {
       "rights": "Data Rights page",
@@ -129,7 +131,7 @@
     },
     "guardianDeclaration": "I declare that I am an adult (18 or over) and the parent or lawful guardian of this patient, and I am giving the consents below on their behalf.",
     "consentHeading": "Your consent",
-    "consentAppointment": "I agree to {clinic} processing the personal data listed above to schedule and manage this appointment.",
+    "consentAppointment": "I agree to {clinic} using the information above, including the sensitive personal data (the service and any reason for visit), to schedule and manage this appointment.",
     "submit": "Request appointment",
     "successTitle": "Appointment requested",
     "successText": "We will call you to confirm your slot.",
@@ -164,7 +166,7 @@
     "accessHeading": "Your data",
     "accessIntro": "A summary of the personal data we hold about you, how we use it and who we share it with.",
     "processingHeading": "How we use it",
-    "processorsHeading": "Who processes it for us",
+    "processorsHeading": "Service providers (none receives your data yet)",
     "consentsHeading": "Your consents",
     "withdraw": "Withdraw",
     "give": "Give consent",
@@ -206,11 +208,12 @@
     "legacyPurposes": {
       "APPOINTMENT_REMINDERS_SMS_WHATSAPP": "Appointment reminders by SMS or WhatsApp (no longer offered)",
       "MARKETING": "Offers and clinic news (no longer offered)"
-    }
+    },
+    "notConfigured": "Not yet configured: none of your data is sent to it."
   },
   "grievance": {
     "title": "Raise a grievance",
-    "intro": "If you are unhappy with how we have handled your personal data or a request, tell us here. Our Grievance Officer will reply within {days} days.",
+    "intro": "If you are unhappy with how we have handled your personal information or a request, tell us here. Our Grievance Officer will resolve it within one month.",
     "withReference": "I have a reference ID",
     "withoutReference": "I don't have a reference ID",
     "name": "Your name",
@@ -229,7 +232,7 @@
     "successTitle": "Grievance received",
     "referenceNumber": "Reference number",
     "dueDate": "We will reply by",
-    "board": "If you are not satisfied with our reply, or we do not reply by this date, you may complain to the {board} under section 13(3) of the DPDP Act, 2023.",
-    "duty": "Please make sure the information you give is accurate. Under section 15 of the Act, you must not file a false or frivolous complaint."
+    "board": "If you are not satisfied with our reply, you can contact the Grievance Officer again. From about 13 May 2027 (date to be confirmed), the Digital Personal Data Protection Act, 2023 is expected to also let you complain to the {board} after using this process.",
+    "duty": "Please make sure the information you give is accurate. Please do not file a false or frivolous complaint."
   }
 }

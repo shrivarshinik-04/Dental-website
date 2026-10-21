@@ -164,7 +164,8 @@ const RightsDashboard = ({ summary, onSummary, onSignedOut }) => {
         <ul className="fs-15 mb-0">
           {summary.processors.map((p) => (
             <li key={p.id}>
-              <strong>{p.name}</strong>: {p.purpose} ({p.dataShared}; {p.location})
+              <strong>{p.name}</strong>: {p.purpose}.{' '}
+              {p.configured ? `${p.dataShared}; ${p.location}` : t('rights.notConfigured')}
             </li>
           ))}
         </ul>

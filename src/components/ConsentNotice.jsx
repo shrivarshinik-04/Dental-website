@@ -6,10 +6,10 @@ import LanguageSwitcher from 'components/LanguageSwitcher';
 
 /**
  * Privacy notice shown before or together with every consent request.
- * DPDP Act s.5(1) (itemised data and purposes; how to withdraw, use rights and
- * complain to the Board), s.5(3) (language); DPDP Rules 2025, Rule 3(a) (understandable
- * on its own), 3(b) (itemised description and specified purposes), 3(c) (links to
- * withdraw, exercise rights and complain to the Board); Rule 9 (contact person).
+ * Now: SPDI Rules 2011, Rule 5(1) (consent before collecting sensitive data) and 5(3)
+ * (fact of collection, purpose, recipients, name and address of the collecting agency).
+ * From about May 2027: DPDP Act s.5 and s.6 and DPDP Rules 2025, Rule 3 (itemised data,
+ * specified purposes, withdrawal, rights and Board complaint), s.5(3) (language), Rule 9.
  *
  * The text comes from src/locales/<lang>.json → "notice", which is stored verbatim in
  * NoticeVersion so every consent can be traced to exactly what was shown (s.6(10)).
@@ -48,6 +48,9 @@ const ConsentNotice = ({ dataKeys, purposeKeys, headingLevel = 2, showSwitcher =
           </li>
         ))}
       </ul>
+
+      <SubHeading className="fs-17 merriweather text-title mt-4">{t('notice.recipientsHeading')}</SubHeading>
+      <p className="fs-15 mb-3">{t('notice.recipients')}</p>
 
       <SubHeading className="fs-17 merriweather text-title mt-4">{t('notice.rightsHeading')}</SubHeading>
       <p className="fs-15 mb-2">{t('notice.withdraw')}</p>

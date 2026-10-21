@@ -1,7 +1,7 @@
 /**
- * s.13 grievance redressal; DPDP Rules 2025, Rule 14(3): reply within the published
- * period, never more than 90 days. s.13(3): the complainant may approach the Data
- * Protection Board after exhausting this mechanism; the reply says so.
+ * Grievance redressal. Now: SPDI Rules 2011, Rule 5(9) — the Grievance Officer redresses
+ * grievances within one month. From about May 2027: DPDP Act s.13 and Rules, Rule 14(3)
+ * (published period of at most 90 days); s.13(3) Board complaint after this mechanism.
  *
  * Verified complainants (OTP session from /data-rights) are linked to their record.
  * People without a reference ID can still complain; we then keep their name and
@@ -19,8 +19,9 @@ import { addDays, allowMethods, hashedIp, rateLimit, requireSameOrigin, withErro
 
 const escalationNote = (dueDate) =>
   `If you are not satisfied with our response, or do not receive one by ${dueDate.toISOString().slice(0, 10)}, ` +
-  `you may complain to the ${DATA_PROTECTION_BOARD.name} (${DATA_PROTECTION_BOARD.url || DATA_PROTECTION_BOARD.urlPendingText}) under section 13(3) of the ` +
-  'Digital Personal Data Protection Act, 2023, after exhausting this grievance redressal mechanism.';
+  'please contact the Grievance Officer again. From about 13 May 2027 (date to be confirmed), section 13(3) of the ' +
+  `Digital Personal Data Protection Act, 2023 is expected to let you complain to the ${DATA_PROTECTION_BOARD.name} ` +
+  `(${DATA_PROTECTION_BOARD.url || DATA_PROTECTION_BOARD.urlPendingText}) after using this grievance process.`;
 
 export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;

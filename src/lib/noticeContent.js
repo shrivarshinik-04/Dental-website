@@ -5,12 +5,34 @@
  */
 const crypto = require('crypto');
 const locales = require('../locales');
-const { NOTICE_VERSION, NOTICE_EFFECTIVE_FROM } = require('../config/compliance');
+const {
+  NOTICE_VERSION,
+  NOTICE_EFFECTIVE_FROM,
+  CLINIC,
+  GRIEVANCE_OFFICER,
+  PRIVACY_CONTACT,
+  DATA_PROTECTION_BOARD,
+  GRIEVANCE_RESPONSE_DAYS
+} = require('../config/compliance');
+
+// Values substituted into the notice text and the contact block shown with it. Stored with
+// the text so the record matches exactly what the person saw.
+const pick = ({ name, email, phone }) => ({ name, email, phone });
+const noticeVars = () => ({
+  clinic: CLINIC.tradeName,
+  legalName: CLINIC.legalName,
+  address: CLINIC.address,
+  board: DATA_PROTECTION_BOARD.name,
+  grievanceDays: GRIEVANCE_RESPONSE_DAYS,
+  grievanceOfficer: pick(GRIEVANCE_OFFICER),
+  privacyContact: pick(PRIVACY_CONTACT),
+  isSample: CLINIC.isSample
+});
 
 const buildNotice = (language) => {
   const locale = locales[language];
   if (!locale) throw new Error(`Unknown notice language: ${language}`);
-  const content = JSON.stringify(locale.notice);
+  const content = JSON.stringify({ text: locale.notice, vars: noticeVars() });
   return {
     version: NOTICE_VERSION,
     language,

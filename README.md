@@ -59,7 +59,7 @@
 
 <h2>💡 Key Features</h2>
 <ul>
-  <li>React 18+, Next.js 14+ with App Router</li>
+  <li>React 18+, Next.js 14+ (Pages Router)</li>
   <li>Bootstrap 5.x and SCSS styling</li>
   <li>Clean & responsive layout for all devices</li>
   <li>Optimized for SEO and speed</li>
@@ -102,8 +102,14 @@
 npm run dev       # Start development server
 npm run build     # Build for production</code></pre>
 
-<h2>🇮🇳 DPDP Act 2023 & DPDP Rules 2025 compliance</h2>
-<p>This site adds the notices, consent flows, rights portal, grievance mechanism, security safeguards and admin tools a dental clinic needs under India's <strong>Digital Personal Data Protection Act, 2023</strong> and the <strong>DPDP Rules, 2025</strong> (notified 13 November 2025). It is a technical implementation, <strong>not legal advice</strong>: have counsel review the texts and settings below before going live.</p>
+<h2>🔒 Privacy implementation (test environment)</h2>
+<p>This copy of the template is a <strong>test environment</strong> for evaluating privacy controls (for example with Zycato by SQ1 Security). The clinic, people and contact details are <strong>fictitious samples</strong> (<code>IS_SAMPLE</code> in <code>src/config/compliance.js</code>), shown with a "Sample details: test environment" badge. Nothing here is a statement that the site complies with any law, and it is not legal advice.</p>
+<ul>
+  <li><strong>Law in force today:</strong> Information Technology Act 2000, s.43A, and the IT (Reasonable Security Practices and Procedures and Sensitive Personal Data or Information) Rules 2011; CERT-In Directions of 28 April 2022.</li>
+  <li><strong>Digital Personal Data Protection Act 2023 and Rules 2025:</strong> only definitions and Board provisions are in force (since 13 Nov 2025). Consent Manager provisions follow about 13 Nov 2026; the main obligations and rights about 13 May 2027 (G.S.R. 843(E); exact day to be confirmed). Features built for those provisions are labelled as such in the UI.</li>
+  <li>Code comments cite DPDP sections for features built ahead of commencement; they do not mean those sections already apply.</li>
+  <li>Audit, legal matrix, data inventory and plan: <code>docs/audit/</code>. Governing requirements: <code>docs/REQUIREMENTS.md</code>.</li>
+</ul>
 
 <h3>Setup</h3>
 <pre><code>npm install
@@ -135,40 +141,34 @@ npm run dev                     # http://localhost:3000, admin at /admin
   <li><strong>Changing the notice:</strong> edit <code>src/locales/*.json</code>, bump <code>NOTICE_VERSION</code> in <code>src/config/compliance.js</code>, and add a <code>POLICY_CHANGELOG</code> entry. Visitors are re-prompted. If text changes without a version bump, consent logging refuses to run, so a consent can never point at text the person did not see.</li>
 </ul>
 
-<h3>Compliance architecture</h3>
+<h3>Where each control lives</h3>
 <table>
-  <thead><tr><th>Requirement</th><th>Where</th></tr></thead>
+  <thead><tr><th>Control</th><th>Where</th></tr></thead>
   <tbody>
-    <tr><td>All placeholders, retention periods, Processors, cookies (one file)</td><td><code>src/config/compliance.js</code></td></tr>
-    <tr><td>Notice with itemised data and purposes, rights, Board, contact (s.5, Rule 3); English + Hindi (s.5(3), s.6(3))</td><td><code>src/components/ConsentNotice.jsx</code>, <code>src/locales/</code>, <code>src/lib/i18n.js</code></td></tr>
-    <tr><td>Appointment booking: per-purpose unticked consents, guardian flow for minors (s.6, s.9, Rule 12 + Fourth Schedule Part A item 1)</td><td><code>pages/book-appointment.jsx</code>, <code>pages/api/appointments.js</code></td></tr>
-    <tr><td>Cookie banner: off by default, equal Accept and Reject, reopen from the footer, immediate withdrawal, re-prompt on a new notice version</td><td><code>src/components/CookieConsent.jsx</code>, <code>src/lib/consentStore.js</code>, <code>pages/api/consent.js</code></td></tr>
-    <tr><td>Nothing third-party before consent: self-hosted fonts, same-origin CSP, <code>loadScriptIfConsented</code> / <code>ConsentGate</code></td><td><code>pages/_app.jsx</code>, <code>next.config.js</code>, <code>src/components/ConsentGate.jsx</code></td></tr>
-    <tr><td>Append-only consent ledger tied to the exact notice version (s.6(10))</td><td><code>ConsentRecord</code>, <code>NoticeVersion</code> in <code>prisma/schema.prisma</code></td></tr>
-    <tr><td>Rights portal with OTP: access, correct, erase, withdraw, nominate, download (s.11–s.14, Rule 14)</td><td><code>pages/data-rights.jsx</code>, <code>pages/api/rights/*</code>, <code>src/lib/rights.js</code></td></tr>
-    <tr><td>Grievances, ≤ 90-day due date, Board escalation note (s.13, Rule 14(3))</td><td><code>pages/grievance.jsx</code>, <code>pages/api/grievances.js</code></td></tr>
-    <tr><td>Rule 9 contact block in the footer, on notices and in every rights response</td><td><code>src/components/ContactBlock.jsx</code>, <code>withContact()</code> in <code>src/lib/rights.js</code></td></tr>
-    <tr><td>Encryption, audit log, rate limits, validation, security headers (s.8(5), Rule 6)</td><td><code>src/lib/crypto.js</code>, <code>src/lib/audit.js</code>, <code>src/lib/http.js</code>, <code>src/lib/validation.js</code>, <code>docs/SECURITY.md</code></td></tr>
-    <tr><td>Retention and erasure, logs kept ≥ 1 year (s.8(7), Rule 6(1)(e), Rule 8(3))</td><td><code>scripts/retention.js</code></td></tr>
-    <tr><td>Admin with roles: appointments, consent log + CSV, rights, grievances, nominations, breaches (Rule 7, 72-hour countdown and drafts)</td><td><code>pages/admin/*</code>, <code>middleware.js</code>, <code>src/lib/adminAuth.js</code>, <code>src/lib/breach.js</code></td></tr>
+    <tr><td>All organisation details (samples), retention periods, service providers, cookies</td><td><code>src/config/compliance.js</code></td></tr>
+    <tr><td>Notice shown before the consent request: itemised data, purpose, recipients, choices, Grievance Officer (SPDI Rules 5(1), 5(3); DPDP s.5 and Rule 3 from about May 2027); English and Hindi</td><td><code>src/components/ConsentNotice.jsx</code>, <code>src/locales/</code>, <code>src/lib/i18n.js</code></td></tr>
+    <tr><td>Versioned notice text stored with each consent</td><td><code>NoticeVersion</code>, <code>ConsentRecord</code> (<code>prisma/schema.prisma</code>), <code>src/lib/noticeContent.js</code></td></tr>
+    <tr><td>Appointment request: one unticked consent, guardian flow for minors</td><td><code>pages/book-appointment.jsx</code>, <code>pages/api/appointments.js</code></td></tr>
+    <tr><td>Cookie banner: off by default, equal Accept and Reject, reopen from the footer, withdrawal deletes cookies</td><td><code>src/components/CookieConsent.jsx</code>, <code>src/lib/consentStore.js</code>, <code>pages/api/consent.js</code></td></tr>
+    <tr><td>Grievance Officer and privacy contact on every page, with the sample badge</td><td><code>src/components/ContactBlock.jsx</code>, <code>src/components/SampleBadge.jsx</code></td></tr>
+    <tr><td>Review, correct, delete, withdraw (now); access summary, nomination (DPDP, from about May 2027); one-time-code verification</td><td><code>pages/data-rights.jsx</code>, <code>pages/api/rights/*</code>, <code>src/lib/rights.js</code></td></tr>
+    <tr><td>Grievances with a due date (one month)</td><td><code>pages/grievance.jsx</code>, <code>pages/api/grievances.js</code></td></tr>
+    <tr><td>Encryption, audit log, validation, rate limits, admin login throttling, security headers</td><td><code>src/lib/crypto.js</code>, <code>src/lib/audit.js</code>, <code>src/lib/validation.js</code>, <code>src/lib/rateLimit.js</code>, <code>src/lib/adminGuard.js</code>, <code>next.config.js</code>, <code>docs/SECURITY.md</code></td></tr>
+    <tr><td>Retention clean-up job</td><td><code>scripts/retention.js</code></td></tr>
+    <tr><td>Admin area with roles</td><td><code>pages/admin/*</code>, <code>middleware.js</code>, <code>src/lib/adminAuth.js</code></td></tr>
     <tr><td>Privacy and cookie policies</td><td><code>pages/privacy-policy.jsx</code>, <code>pages/cookie-policy.jsx</code></td></tr>
   </tbody>
 </table>
 
-<h3>✅ Things the clinic owner must fill in or confirm</h3>
+<h3>✅ Open items before any real use</h3>
 <ul>
-  <li>[ ] Every <code>[PLACEHOLDER]</code> in <code>src/config/compliance.js</code>: legal name, address, phone, email, website, contact person / Grievance Officer, hosting provider and region, each Processor.</li>
-  <li>[ ] The official complaint URL of the Data Protection Board of India (<code>DATA_PROTECTION_BOARD.url</code>).</li>
-  <li>[ ] <strong>Clinical record retention period</strong> (<code>RETENTION.clinicalRecordDays</code>, a 3-year placeholder): confirm with counsel against Dental Council / state clinical-establishment rules and limitation periods.</li>
-  <li>[ ] Other retention periods, and the 30-day response periods for grievances and rights requests (must stay ≤ 90 days).</li>
-  <li>[ ] Whether Rule 8(3) requires keeping any personal data (not only logs) for one year after processing in your case.</li>
-  <li>[ ] Written contracts with each Data Processor (s.8(2)), including erasure on instruction. Then wire <code>src/lib/notify.js</code> (OTP, reminders) and the processor erasure hooks (<code>instructProcessors</code>, <code>scripts/retention.js</code>).</li>
-  <li>[ ] Hosting in India, or list cross-border countries in <code>HOSTING</code> and check them against any s.16 restriction.</li>
-  <li>[ ] Legal and language review of <code>src/locales/en.json</code> and <code>hi.json</code>. The Hindi was written for this project and needs a professional check. Add any other Eighth Schedule language your patients use.</li>
-  <li>[ ] The privacy policy text (<code>pages/privacy-policy.jsx</code>) matches what the clinic actually does.</li>
-  <li>[ ] Admin accounts per person, HTTPS redirect at the host, backups and the quarterly restore test (<code>docs/SECURITY.md</code>).</li>
-  <li>[ ] Staff process: mark visits as part of the clinical record in <code>/admin/appointments</code>, answer open requests and grievances before their due dates, and follow the breach procedure.</li>
-  <li>[ ] Analytics: none is installed. If you add one, set <code>ANALYTICS.src</code>, list its cookies in <code>COOKIES</code>, and bump <code>NOTICE_VERSION</code>.</li>
+  <li>[ ] Replace every sample value in <code>src/config/compliance.js</code> with real, confirmed details, then set <code>IS_SAMPLE = false</code>.</li>
+  <li>[ ] Data Protection Board official complaint URL (<code>DATA_PROTECTION_BOARD.url</code>); until verified the site shows "official complaint link to be confirmed".</li>
+  <li>[ ] Legal confirmation of the items in <code>docs/audit/07-implementation-plan.md</code> §5: commencement days, SPDI "written consent" formality, s.43A "body corporate", Rule 8(3) retention, children's exemption, clinical-record retention period.</li>
+  <li>[ ] SMS/email provider with a contract, wired in <code>src/lib/notify.js</code>; then turn <code>DEMO_MODE</code> off.</li>
+  <li>[ ] Hosting in India over HTTPS (<code>FORCE_HTTPS=true</code>), backups and restore tests, infrastructure logs kept 180 days (CERT-In).</li>
+  <li>[ ] Professional review of the Hindi text.</li>
+  <li>[ ] Schedule <code>npm run retention</code>.</li>
 </ul>
 
 <h3>📁 Folder Structure</h3>
