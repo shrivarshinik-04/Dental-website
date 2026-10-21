@@ -24,7 +24,7 @@ const escalationNote = (dueDate) =>
 
 export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;
-  if (!rateLimit(req, res, { key: 'grievance', limit: 5, windowMs: 60 * 60 * 1000 })) return;
+  if (!(await rateLimit(req, res, { key: 'grievance', limit: 5, windowMs: 60 * 60 * 1000 }))) return;
 
   const parsed = grievanceSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json(withContact({ error: 'Please check the highlighted fields.', fields: fieldErrors(parsed.error) }));

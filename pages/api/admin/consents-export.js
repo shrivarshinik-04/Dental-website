@@ -5,7 +5,7 @@
  */
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
-import { requireAdmin } from 'lib/adminAuth';
+import { requireAdmin } from 'lib/adminGuard';
 import { consentFilters, consentSelect, consentWhere } from 'lib/consentQuery';
 import { allowMethods, hashedIp, withErrors } from 'lib/http';
 

@@ -5,7 +5,7 @@
 import { z } from 'zod';
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
-import { requireAdmin } from 'lib/adminAuth';
+import { requireAdmin } from 'lib/adminGuard';
 import { DETAILED_REPORT_HOURS } from 'lib/breach';
 import { breachSchema } from 'lib/validation';
 import { allowMethods, hashedIp, requireSameOrigin, withErrors } from 'lib/http';

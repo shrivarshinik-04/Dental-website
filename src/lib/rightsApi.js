@@ -11,7 +11,7 @@ export const principalRoute = (methods, handler) =>
   withErrors(async (req, res) => {
     if (!allowMethods(req, res, methods)) return;
     if (req.method !== 'GET' && !requireSameOrigin(req, res)) return;
-    if (!rateLimit(req, res, { key: 'rights-action', limit: 60, windowMs: 15 * 60 * 1000 })) return;
+    if (!(await rateLimit(req, res, { key: 'rights-action', limit: 60, windowMs: 15 * 60 * 1000 }))) return;
 
     const session = readSession(req);
     const principal = session && (await loadPrincipal(session.dataPrincipalId));

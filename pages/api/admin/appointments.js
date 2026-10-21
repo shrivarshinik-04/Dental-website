@@ -5,7 +5,7 @@
 import { z } from 'zod';
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
-import { requireAdmin } from 'lib/adminAuth';
+import { requireAdmin } from 'lib/adminGuard';
 import { allowMethods, hashedIp, requireSameOrigin, withErrors } from 'lib/http';
 
 const schema = z

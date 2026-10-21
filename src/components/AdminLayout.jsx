@@ -47,7 +47,11 @@ const AdminLayout = ({ title, admin, permissions = [], denied, children }) => {
         )}
         {denied ? (
           <div className="alert alert-danger">
-            {denied === 'forbidden' ? 'Your role does not have access to this section.' : 'Please sign in to continue.'}
+            {denied === 'forbidden'
+              ? 'Your role does not have access to this section.'
+              : denied === 'throttled'
+                ? 'Too many failed sign-in attempts. Try again in 15 minutes.'
+                : 'Please sign in to continue.'}
           </div>
         ) : (
           children

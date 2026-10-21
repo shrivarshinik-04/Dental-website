@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { CONTACT_PERSON } from 'config/compliance';
 import { audit } from './audit';
-import { requireAdmin } from './adminAuth';
+import { requireAdmin } from './adminGuard';
 import { allowMethods, hashedIp, requireSameOrigin, withErrors } from './http';
 import { text } from './validation';
 

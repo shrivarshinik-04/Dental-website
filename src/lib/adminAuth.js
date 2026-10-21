@@ -7,7 +7,8 @@
  *   ADMIN_USERS="priya:admin:pbkdf2.210000.<salt>.<hash>,ravi:reception:pbkdf2.210000.<salt>.<hash>"
  * Generate a hash with `npm run admin:hash-password`.
  *
- * Uses Web Crypto only, so the same code runs in middleware (Edge) and API routes (Node).
+ * Uses Web Crypto only, so it can run in middleware (Edge) and in Node. The guards that
+ * also throttle failed logins live in src/lib/adminGuard.js (Node only).
  */
 
 export const ROLES = {
@@ -79,33 +80,3 @@ export const verifyBasicAuth = async (authorization) => {
 };
 
 export const can = (admin, permission) => Boolean(admin && ROLES[admin.role]?.includes(permission));
-
-/** For API routes: verifies credentials and role, or sends 401/403. */
-export const requireAdmin = async (req, res, permission) => {
-  const admin = await verifyBasicAuth(req.headers.authorization);
-  if (!admin) {
-    res.setHeader('WWW-Authenticate', 'Basic realm="Clinic admin", charset="UTF-8"');
-    res.status(401).json({ error: 'Authentication required' });
-    return null;
-  }
-  if (!can(admin, permission)) {
-    res.status(403).json({ error: 'Your role does not allow this' });
-    return null;
-  }
-  return admin;
-};
-
-/** For getServerSideProps on /admin pages. */
-export const adminPageGuard = async ({ req, res }, permission) => {
-  const admin = await verifyBasicAuth(req.headers.authorization);
-  if (!admin) {
-    res.statusCode = 401;
-    res.setHeader('WWW-Authenticate', 'Basic realm="Clinic admin", charset="UTF-8"');
-    return { denied: { props: { denied: 'unauthenticated' } } };
-  }
-  if (permission && !can(admin, permission)) {
-    res.statusCode = 403;
-    return { denied: { props: { denied: 'forbidden', admin } } };
-  }
-  return { admin };
-};

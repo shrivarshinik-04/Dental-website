@@ -15,7 +15,7 @@ const INVALID = 'That code is not valid or has expired. Request a new one.';
 
 export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;
-  if (!rateLimit(req, res, { key: 'otp-verify', limit: 10, windowMs: 15 * 60 * 1000 })) return;
+  if (!(await rateLimit(req, res, { key: 'otp-verify', limit: 10, windowMs: 15 * 60 * 1000 }))) return;
 
   const parsed = verifyOtpSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json(withContact({ error: INVALID }));

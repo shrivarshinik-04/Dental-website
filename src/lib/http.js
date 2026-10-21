@@ -6,6 +6,7 @@
  */
 import { hmac } from './crypto';
 import { forceHttps, trustProxy } from './env';
+import { consume } from './rateLimit';
 
 /**
  * The client IP. X-Forwarded-For is client-controlled unless a trusted reverse proxy
@@ -24,30 +25,16 @@ export const hashedIp = (req) => hmac(clientIp(req));
 
 export const userAgent = (req) => String(req.headers['user-agent'] || '').slice(0, 300);
 
-// ---------------------------------------------------------------------------
-// Fixed-window in-memory rate limiter. Good enough for a single instance; use a
-// shared store (e.g. Redis) when running more than one server.
-// ---------------------------------------------------------------------------
-const buckets = new Map();
-
-export const rateLimit = (req, res, { key, limit, windowMs }) => {
-  const id = `${key}:${hashedIp(req)}`;
-  const now = Date.now();
-  const bucket = buckets.get(id);
-  if (!bucket || bucket.resetAt < now) {
-    buckets.set(id, { count: 1, resetAt: now + windowMs });
-    if (buckets.size > 10000) {
-      for (const [k, v] of buckets) if (v.resetAt < now) buckets.delete(k);
-    }
-    return true;
-  }
-  bucket.count += 1;
-  if (bucket.count > limit) {
-    res.setHeader('Retry-After', Math.ceil((bucket.resetAt - now) / 1000));
-    res.status(429).json({ error: 'Too many requests. Please wait a few minutes and try again.' });
-    return false;
-  }
-  return true;
+/**
+ * Per-IP rate limit for an API route. Sends 429 and returns false when exceeded.
+ * Storage is swappable, see src/lib/rateLimit.js.
+ */
+export const rateLimit = async (req, res, { key, limit, windowMs }) => {
+  const { allowed, retryAfterSeconds } = await consume(`${key}:${hashedIp(req)}`, { limit, windowMs });
+  if (allowed) return true;
+  res.setHeader('Retry-After', retryAfterSeconds);
+  res.status(429).json({ error: 'Too many requests. Please wait a few minutes and try again.' });
+  return false;
 };
 
 export const allowMethods = (req, res, methods) => {

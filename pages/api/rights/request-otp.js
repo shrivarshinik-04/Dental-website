@@ -19,7 +19,7 @@ const MAX_CODES_PER_WINDOW = 3;
 
 export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;
-  if (!rateLimit(req, res, { key: 'otp-request', limit: 5, windowMs: 15 * 60 * 1000 })) return;
+  if (!(await rateLimit(req, res, { key: 'otp-request', limit: 5, windowMs: 15 * 60 * 1000 }))) return;
 
   // Checked before any lookup so the answer does not depend on whether the details match.
   if (!otpDelivery()) {

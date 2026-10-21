@@ -27,7 +27,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;
-  if (!rateLimit(req, res, { key: 'consent', limit: 30, windowMs: 10 * 60 * 1000 })) return;
+  if (!(await rateLimit(req, res, { key: 'consent', limit: 30, windowMs: 10 * 60 * 1000 }))) return;
 
   const parsed = cookieConsentSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'Invalid request' });

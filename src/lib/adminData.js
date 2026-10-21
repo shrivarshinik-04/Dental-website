@@ -2,7 +2,8 @@
  * Server helpers for admin pages: auth guard + audit of every view of personal data
  * (DPDP Rules 2025, Rule 6(1)(b)–(c)). Server-only.
  */
-import { ROLES, adminPageGuard } from './adminAuth';
+import { ROLES } from './adminAuth';
+import { adminPageGuard } from './adminGuard';
 import { auditMany } from './audit';
 import { hashedIp } from './http';
 

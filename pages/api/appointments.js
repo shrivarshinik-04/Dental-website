@@ -37,7 +37,7 @@ const uniqueReference = async (tx) => {
 
 export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;
-  if (!rateLimit(req, res, { key: 'appointments', limit: 5, windowMs: 15 * 60 * 1000 })) return;
+  if (!(await rateLimit(req, res, { key: 'appointments', limit: 5, windowMs: 15 * 60 * 1000 }))) return;
 
   const parsed = appointmentSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: 'Please check the highlighted fields.', fields: fieldErrors(parsed.error) });
