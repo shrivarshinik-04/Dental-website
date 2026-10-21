@@ -116,7 +116,20 @@ npm run dev                     # http://localhost:3000, admin at /admin
 </code></pre>
 <ul>
   <li><strong>Seed:</strong> <code>npx prisma db seed</code> (re-runnable) stores the notice text for each language as a <code>NoticeVersion</code>. It runs automatically after <code>migrate dev</code>.</li>
-  <li><strong>One-time codes in development</strong> are printed to the server console (destination masked). In production nothing is printed, and OTP fails until you connect an SMS or email provider in <code>src/lib/notify.js</code>.</li>
+  <li><strong>One-time codes:</strong> no SMS or email provider is connected yet, so the Data Rights page and verified grievances need <code>DEMO_MODE=true</code> (see below). Without it the API answers "online verification is not available yet". Codes are never written to logs.</li>
+</ul>
+
+<h3>Test-environment flags (<code>.env</code>, see <code>src/lib/env.js</code>)</h3>
+<table>
+  <thead><tr><th>Variable</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><code>DEMO_MODE=true</code></td><td>Shows the one-time code on screen, labelled "Test environment", instead of sending it. <strong>Risk:</strong> anyone who knows a reference ID and the registered phone number or email can open that person's records. Use only with synthetic data in a closed test environment. Refused when <code>NODE_ENV=production</code> (the build and server stop with an error) unless <code>ALLOW_DEMO_IN_PROD=true</code> is also set.</td></tr>
+    <tr><td><code>ALLOW_DEMO_IN_PROD=true</code></td><td>Explicit override for a production build used as a test environment. Never set it on a site that real patients use.</td></tr>
+    <tr><td><code>FORCE_HTTPS=true</code></td><td>Sends HSTS, <code>upgrade-insecure-requests</code> and COOP, and marks cookies <code>Secure</code>. Only with <code>NODE_ENV=production</code>; set it for <code>next build</code> too, because headers are fixed at build time. Leave it unset to serve a production build over plain HTTP.</td></tr>
+    <tr><td><code>TRUST_PROXY=true</code></td><td>Reads the client IP from <code>X-Forwarded-For</code>. Set only behind a reverse proxy that overwrites that header; otherwise clients could spoof it to bypass rate limits.</td></tr>
+  </tbody>
+</table>
+<ul>
   <li><strong>Retention job:</strong> schedule <code>npm run retention</code> daily (cron). Try <code>npm run retention:dry-run</code> first.</li>
   <li><strong>PostgreSQL in production:</strong> set <code>provider = "postgresql"</code> in <code>prisma/schema.prisma</code>, point <code>DATABASE_URL</code> at it, and generate fresh migrations against PostgreSQL. The committed migration is SQLite SQL.</li>
   <li><strong>Changing the notice:</strong> edit <code>src/locales/*.json</code>, bump <code>NOTICE_VERSION</code> in <code>src/config/compliance.js</code>, and add a <code>POLICY_CHANGELOG</code> entry. Visitors are re-prompted. If text changes without a version bump, consent logging refuses to run, so a consent can never point at text the person did not see.</li>

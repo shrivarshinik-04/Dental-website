@@ -1,34 +1,50 @@
 /**
- * Outbound messages: one-time codes (Rule 14(1) verification), alerts to the
- * Grievance Officer, and instructions to Data Processors (s.6(6), s.8(7)(b)).
+ * Outbound messages: one-time codes for identity verification before acting on a
+ * request (SPDI Rules 2011, Rule 5(6) review/correction, now; DPDP Rules 2025, Rule 14,
+ * from about May 2027), alerts to the Grievance Officer, and instructions to processors.
  *
- * The SMS/WhatsApp and email providers are stubs. Plug in your provider's SDK in
- * `deliver`. In development the console fallback prints a masked destination and
- * the code so the flow works locally; in production nothing is printed and an
- * unconfigured provider is an error.
+ * No SMS/WhatsApp or email provider is configured yet. Until one is:
+ * - DEMO_MODE=true (test environments only, see src/lib/env.js) returns the code to the
+ *   caller so it can be shown on screen with a "Test environment" label;
+ * - otherwise `otpDelivery()` reports that verification is unavailable.
+ * One-time codes are never written to logs.
  */
+import { demoMode } from './env';
 
 const isProd = process.env.NODE_ENV === 'production';
 
-const mask = (destination) => {
-  const value = String(destination);
-  if (value.includes('@')) {
-    const [user, domain] = value.split('@');
-    return `${user.slice(0, 1)}***@${domain}`;
-  }
-  return `******${value.slice(-4)}`;
+// Set to true when `deliverViaProvider` is implemented for both channels.
+const PROVIDER_CONFIGURED = false;
+
+export class DeliveryUnavailableError extends Error {}
+
+/** 'demo' | 'provider' | null (no way to deliver a code). */
+export const otpDelivery = () => {
+  if (demoMode()) return 'demo';
+  return PROVIDER_CONFIGURED ? 'provider' : null;
 };
 
-const deliver = async ({ channel, to, body }) => {
+// eslint-disable-next-line no-unused-vars
+const deliverViaProvider = async ({ channel, to, body }) => {
   // TODO: call the SMS/WhatsApp provider when channel === 'phone' and the email
-  // provider when channel === 'email'. Both must be listed in PROCESSORS and be
-  // bound by a contract (s.8(2)).
-  if (isProd) throw new Error(`No ${channel} provider configured`);
-  console.info(`[notify:dev] ${channel} to ${mask(to)}: ${body}`);
+  // provider when channel === 'email'. List each in PROCESSORS and put a contract in
+  // place before sending personal data to it.
+  throw new DeliveryUnavailableError(`No ${channel} provider configured`);
 };
 
-export const sendOtp = (channel, to, code) =>
-  deliver({ channel, to, body: `Your one-time code is ${code}. It expires in 10 minutes. Do not share it.` });
+/**
+ * Delivers a one-time code.
+ * @returns {Promise<{ demoCode?: string }>} demoCode only in DEMO_MODE
+ */
+export const sendOtp = async (channel, to, code) => {
+  const mode = otpDelivery();
+  if (mode === 'demo') return { demoCode: code };
+  if (mode === 'provider') {
+    await deliverViaProvider({ channel, to, body: `Your one-time code is ${code}. It expires in 10 minutes. Do not share it.` });
+    return {};
+  }
+  throw new DeliveryUnavailableError('No delivery channel configured');
+};
 
 /** Alert the Grievance Officer. Do not put personal data in `summary`. */
 export const alertContactPerson = async (summary) => {

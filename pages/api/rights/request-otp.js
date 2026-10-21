@@ -1,14 +1,16 @@
 /**
- * Step 1 of identity verification for rights requests (DPDP Rules 2025, Rule 14(1), 14(5)).
- * Sends a one-time code to the registered phone or email if the reference ID and
- * contact match. The reply is the same either way, so it reveals nothing.
+ * Step 1 of identity verification before acting on a request about a person's data
+ * (SPDI Rules 2011, Rule 5(6), now; DPDP Rules 2025, Rule 14(1) and (5), from about May 2027).
+ * Sends a one-time code to the registered phone or email if the reference ID and contact
+ * match. Outside DEMO_MODE the reply is the same either way, so it reveals nothing.
+ * In DEMO_MODE (test environments only) a matching request gets the code back for display.
  */
 import crypto from 'crypto';
 import { OTP } from 'config/compliance';
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
 import { decrypt, hmac, safeEqual } from 'lib/crypto';
-import { sendOtp } from 'lib/notify';
+import { DeliveryUnavailableError, otpDelivery, sendOtp } from 'lib/notify';
 import { requestOtpSchema } from 'lib/validation';
 import { withContact } from 'lib/rights';
 import { allowMethods, hashedIp, rateLimit, requireSameOrigin, withErrors } from 'lib/http';
@@ -19,11 +21,19 @@ export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;
   if (!rateLimit(req, res, { key: 'otp-request', limit: 5, windowMs: 15 * 60 * 1000 })) return;
 
+  // Checked before any lookup so the answer does not depend on whether the details match.
+  if (!otpDelivery()) {
+    return res.status(503).json(
+      withContact({ error: 'Online verification is not available yet. Please contact the Grievance Officer using the details below.' })
+    );
+  }
+
   const parsed = requestOtpSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json(withContact({ error: 'Enter your reference ID and a valid mobile number or email.' }));
 
   const { referenceId, contact } = parsed.data;
   const principal = await prisma.dataPrincipal.findUnique({ where: { referenceId } });
+  let demoCode;
 
   if (principal && !principal.erasedAt) {
     const stored = decrypt(contact.channel === 'phone' ? principal.phone : principal.email);
@@ -33,6 +43,15 @@ export default withErrors(async (req, res) => {
       });
       if (recent < MAX_CODES_PER_WINDOW) {
         const code = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
+        // Send first: a code that could not be delivered must not leave a challenge behind.
+        try {
+          ({ demoCode } = await sendOtp(contact.channel, contact.value, code));
+        } catch (err) {
+          if (err instanceof DeliveryUnavailableError) {
+            return res.status(503).json(withContact({ error: 'We could not send a code right now. Please try again later.' }));
+          }
+          throw err;
+        }
         const challenge = await prisma.otpChallenge.create({
           data: {
             dataPrincipalId: principal.id,
@@ -41,11 +60,10 @@ export default withErrors(async (req, res) => {
             expiresAt: new Date(Date.now() + OTP.ttlMinutes * 60 * 1000)
           }
         });
-        await sendOtp(contact.channel, contact.value, code);
         await audit({ actor: 'public', action: 'OTP_SENT', entity: 'OtpChallenge', entityId: challenge.id, ipHash: hashedIp(req) });
       }
     }
   }
 
-  res.status(200).json(withContact({ ok: true }));
+  res.status(200).json(withContact({ ok: true, ...(demoCode ? { demo: { code: demoCode } } : {}) }));
 });

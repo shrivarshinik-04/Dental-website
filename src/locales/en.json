@@ -206,7 +206,9 @@
       "phone": "Mobile number",
       "email": "Email"
     },
-    "noData": "None"
+    "noData": "None",
+    "demoLabel": "Test environment",
+    "demoText": "Codes are not sent in this test environment (DEMO_MODE). Your one-time code is:"
   },
   "grievance": {
     "title": "Raise a grievance",

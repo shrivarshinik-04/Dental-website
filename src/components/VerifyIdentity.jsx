@@ -14,6 +14,7 @@ const VerifyIdentity = ({ onVerified }) => {
   const [referenceId, setReferenceId] = useState('');
   const [contact, setContact] = useState('');
   const [code, setCode] = useState('');
+  const [demoCode, setDemoCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -32,7 +33,8 @@ const VerifyIdentity = ({ onVerified }) => {
   const requestCode = (e) => {
     e.preventDefault();
     run(async () => {
-      await postJson('/api/rights/request-otp', { referenceId, contact });
+      const data = await postJson('/api/rights/request-otp', { referenceId, contact });
+      setDemoCode(data.demo?.code || '');
       setStep('verify');
     });
   };
@@ -86,6 +88,12 @@ const VerifyIdentity = ({ onVerified }) => {
           <p className="fs-15" role="status">
             {t('rights.codeSent')}
           </p>
+          {demoCode && (
+            <div className="alert alert-warning py-2" role="note">
+              <span className="badge bg-warning text-dark me-2">{t('rights.demoLabel')}</span>
+              {t('rights.demoText')} <strong className="fs-18 ms-1">{demoCode}</strong>
+            </div>
+          )}
           <div className="mb-3">
             <label htmlFor="verify-code" className="form-label">
               {t('rights.code')}
