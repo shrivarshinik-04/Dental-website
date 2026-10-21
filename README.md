@@ -141,6 +141,8 @@ npx prisma migrate dev          # creates prisma/dev.db and seeds the first Noti
 npm run dev                     # http://localhost:3000, admin at /admin
 npm run lint                    # ESLint (next/core-web-vitals)
 npm run build                   # production build
+npx playwright install chromium # once per machine (on Linux also: npx playwright install-deps)
+npm test                        # e2e tests: builds into .next-test, uses a synthetic prisma/test.db
 </code></pre>
 <p><code>.env.development.local</code> is read only by <code>next dev</code>, so production builds never pick up <code>DEMO_MODE</code> by accident.</p>
 <ul>
@@ -172,12 +174,15 @@ npm run build                   # production build
     <tr><td>Notice shown before the consent request: itemised data, purpose, recipients, choices, Grievance Officer (SPDI Rules 5(1), 5(3); DPDP s.5 and Rule 3 from about May 2027); English and Hindi</td><td><code>src/components/ConsentNotice.jsx</code>, <code>src/locales/</code>, <code>src/lib/i18n.js</code></td></tr>
     <tr><td>Versioned notice text stored with each consent</td><td><code>NoticeVersion</code>, <code>ConsentRecord</code> (<code>prisma/schema.prisma</code>), <code>src/lib/noticeContent.js</code></td></tr>
     <tr><td>Appointment request: one unticked consent, guardian flow for minors</td><td><code>pages/book-appointment.jsx</code>, <code>pages/api/appointments.js</code></td></tr>
-    <tr><td>Cookie banner: off by default, equal Accept and Reject, reopen from the footer, withdrawal deletes cookies</td><td><code>src/components/CookieConsent.jsx</code>, <code>src/lib/consentStore.js</code>, <code>pages/api/consent.js</code></td></tr>
+    <tr><td>Cookie banner: off by default, equal Accept and Reject, reopen from the footer, withdrawal deletes cookies; not a cookie wall</td><td><code>src/components/CookieConsent.jsx</code>, <code>src/lib/consentStore.js</code>, <code>pages/api/consent.js</code></td></tr>
+    <tr><td>First-party analytics that only runs after opt-in; withdrawal erases its data</td><td><code>public/js/analytics.js</code>, <code>pages/api/analytics.js</code>, <code>pages/admin/analytics.jsx</code></td></tr>
     <tr><td>Grievance Officer and privacy contact on every page, with the sample badge</td><td><code>src/components/ContactBlock.jsx</code>, <code>src/components/SampleBadge.jsx</code></td></tr>
     <tr><td>Review, correct, delete, withdraw (now); access summary, nomination (DPDP, from about May 2027); one-time-code verification</td><td><code>pages/data-rights.jsx</code>, <code>pages/api/rights/*</code>, <code>src/lib/rights.js</code></td></tr>
     <tr><td>Grievances with a due date (one month)</td><td><code>pages/grievance.jsx</code>, <code>pages/api/grievances.js</code></td></tr>
     <tr><td>Encryption, audit log, validation, rate limits, admin login throttling, security headers</td><td><code>src/lib/crypto.js</code>, <code>src/lib/audit.js</code>, <code>src/lib/validation.js</code>, <code>src/lib/rateLimit.js</code>, <code>src/lib/adminGuard.js</code>, <code>next.config.js</code>, <code>docs/SECURITY.md</code></td></tr>
-    <tr><td>Retention clean-up job</td><td><code>scripts/retention.js</code></td></tr>
+    <tr><td>Retention clean-up job and periods</td><td><code>scripts/retention.js</code>, <code>docs/RETENTION.md</code></td></tr>
+    <tr><td>Incident procedure (CERT-In within 6 hours) and register</td><td><code>docs/BREACH-RESPONSE.md</code>, <code>pages/admin/breaches.jsx</code></td></tr>
+    <tr><td>Automated tests (links, interactions, privacy, rights, admin, security)</td><td><code>tests/e2e/</code>, <code>playwright.config.js</code>; results in <code>docs/audit/06-results.md</code></td></tr>
     <tr><td>Admin area with roles</td><td><code>pages/admin/*</code>, <code>middleware.js</code>, <code>src/lib/adminAuth.js</code></td></tr>
     <tr><td>Privacy and cookie policies</td><td><code>pages/privacy-policy.jsx</code>, <code>pages/cookie-policy.jsx</code></td></tr>
   </tbody>
