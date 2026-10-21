@@ -19,17 +19,35 @@ const LEGACY_PURPOSES = ['APPOINTMENT_REMINDERS_SMS_WHATSAPP', 'MARKETING'];
 /** Rule 9: every response to a rights request names the person who can answer questions. */
 export const withContact = (body) => ({ ...body, contact: CONTACT_PERSON });
 
-export const loadPrincipal = (id, client = prisma) =>
-  client.dataPrincipal.findUnique({
+/** Nominee stored (encrypted) in a NOMINATION request's payload, or null. */
+export const nomineeFromRequest = (request) => {
+  try {
+    const payload = JSON.parse(request.payload || 'null');
+    return payload && payload.nominee ? { ...JSON.parse(decrypt(payload.nominee)), since: request.createdAt.toISOString() } : null;
+  } catch {
+    return null;
+  }
+};
+
+export const loadPrincipal = async (id, client = prisma) => {
+  const principal = await client.dataPrincipal.findUnique({
     where: { id },
     include: {
       appointments: { orderBy: { preferredDate: 'desc' } },
       consents: { orderBy: { timestamp: 'asc' }, include: { noticeVersion: { select: { version: true } } } },
-      nominations: { where: { active: true } },
       rightsRequests: { orderBy: { createdAt: 'desc' }, take: 20 },
       grievances: { orderBy: { createdAt: 'desc' }, take: 20 }
     }
   });
+  if (!principal) return null;
+  // The latest nomination request is the current nominee.
+  const latestNomination = await client.rightsRequest.findFirst({
+    where: { dataPrincipalId: id, type: 'NOMINATION' },
+    orderBy: { createdAt: 'desc' }
+  });
+  const nominee = latestNomination && nomineeFromRequest(latestNomination);
+  return { ...principal, nominations: nominee ? [nominee] : [] };
+};
 
 /** Latest event per purpose from the append-only ledger. */
 export const currentConsents = (consents) => {
@@ -84,12 +102,7 @@ export const buildSummary = (principal) => {
       language: c.language,
       givenByGuardian: c.givenByGuardian
     })),
-    nominations: principal.nominations.map((n) => ({
-      name: decrypt(n.nomineeName),
-      relationship: decrypt(n.relationship),
-      contact: decrypt(n.contact),
-      since: n.createdAt.toISOString()
-    })),
+    nominations: principal.nominations,
     requests: principal.rightsRequests.map((r) => ({
       type: r.type,
       status: r.status,
@@ -137,7 +150,7 @@ export const verificationMethod = (session) => (session.channel === 'email' ? 'O
  * s.12(3) erasure. Erases everything not required by law:
  *  - withdraws all active consents (new WITHDRAWN events; the ledger is kept as proof, s.6(10));
  *  - deletes appointments that are not part of the clinical record;
- *  - deletes nominations;
+ *  - erases nominee details;
  *  - if no clinical record remains, erases name, phone and email and marks the principal erased;
  *    otherwise keeps only name + phone (needed to identify the clinical record) and erases email.
  * Returns what was erased and what was retained, with the legal basis.
@@ -164,7 +177,8 @@ export const erasePrincipal = async (tx, principal, { noticeVersionId, language,
   const retained = principal.appointments.filter((a) => a.legallyRequired);
   const erasable = principal.appointments.filter((a) => !a.legallyRequired);
   if (erasable.length) await tx.appointment.deleteMany({ where: { id: { in: erasable.map((a) => a.id) } } });
-  await tx.nomination.deleteMany({ where: { dataPrincipalId: principal.id } });
+  // Nominee details live in NOMINATION request payloads: erase them, keep the request record.
+  await tx.rightsRequest.updateMany({ where: { dataPrincipalId: principal.id, type: 'NOMINATION' }, data: { payload: null } });
   await tx.otpChallenge.deleteMany({ where: { dataPrincipalId: principal.id } });
 
   if (retained.length) {

@@ -1,9 +1,10 @@
 /**
- * Nominations (DPDP Act s.14; Rule 14(4)). Check the nominee's identity and proof of
+ * Current nominees (DPDP Act s.14; Rule 14(4): from about May 2027). Stored as NOMINATION
+ * requests; the latest per person is current. Check the nominee's identity and proof of
  * death or incapacity before acting on their request.
  */
 import prisma from 'lib/db';
-import { decrypt } from 'lib/crypto';
+import { nomineeFromRequest } from 'lib/rights';
 import { adminProps, noStore } from 'lib/adminData';
 import AdminLayout from 'components/AdminLayout';
 
@@ -18,48 +19,46 @@ const Nominations = ({ admin, permissions, denied, nominations = [] }) => (
             <th>Relationship</th>
             <th>Contact</th>
             <th>Since</th>
-            <th>Active</th>
+            <th>Current</th>
           </tr>
         </thead>
         <tbody>
           {nominations.map((n) => (
-            <tr key={n.id} className={n.active ? '' : 'text-muted'}>
+            <tr key={n.id} className={n.current ? '' : 'text-muted'}>
               <td>{n.referenceId}</td>
-              <td>{n.nomineeName}</td>
+              <td>{n.name}</td>
               <td>{n.relationship}</td>
               <td>{n.contact}</td>
-              <td>{new Date(n.createdAt).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
-              <td>{n.active ? 'Yes' : 'Replaced'}</td>
+              <td>{new Date(n.since).toLocaleDateString('en-IN', { timeZone: 'Asia/Kolkata' })}</td>
+              <td>{n.current ? 'Yes' : 'Replaced'}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
+    {!nominations.length && <p>No nominations.</p>}
   </AdminLayout>
 );
 
 export const getServerSideProps = adminProps('nominations', async ({ res }) => {
   noStore(res);
-  const rows = await prisma.nomination.findMany({
+  const rows = await prisma.rightsRequest.findMany({
+    where: { type: 'NOMINATION', payload: { not: null } },
     orderBy: { createdAt: 'desc' },
     take: 300,
-    include: { dataPrincipal: { select: { referenceId: true } } }
+    include: { dataPrincipal: { select: { id: true, referenceId: true } } }
   });
-  return {
-    entity: 'Nomination',
-    viewed: rows.map((n) => n.id),
-    props: {
-      nominations: rows.map((n) => ({
-        id: n.id,
-        referenceId: n.dataPrincipal.referenceId,
-        nomineeName: decrypt(n.nomineeName),
-        relationship: decrypt(n.relationship),
-        contact: decrypt(n.contact),
-        createdAt: n.createdAt,
-        active: n.active
-      }))
-    }
-  };
+  const seen = new Set();
+  const nominations = rows
+    .map((r) => {
+      const nominee = nomineeFromRequest(r);
+      if (!nominee) return null;
+      const current = !seen.has(r.dataPrincipalId);
+      seen.add(r.dataPrincipalId);
+      return { id: r.id, referenceId: r.dataPrincipal?.referenceId || '—', current, ...nominee };
+    })
+    .filter(Boolean);
+  return { entity: 'RightsRequest', viewed: nominations.map((n) => n.id), props: { nominations } };
 });
 
 export default Nominations;

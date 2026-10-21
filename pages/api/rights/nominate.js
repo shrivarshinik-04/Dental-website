@@ -1,6 +1,7 @@
 /**
- * s.14 + DPDP Rules 2025, Rule 14(4): nominate a person to exercise the Data
- * Principal's rights in the event of death or incapacity. Replaces any earlier nominee.
+ * Nomination of a person to exercise the Data Principal's rights on death or incapacity
+ * (DPDP Act s.14, DPDP Rules 2025 Rule 14(4): from about May 2027). Stored as a NOMINATION
+ * request with the nominee encrypted; the latest one replaces any earlier nominee.
  */
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
@@ -15,17 +16,14 @@ export default principalRoute(['POST'], async (req, res, { session, principal, i
   const { name, relationship, contact } = parsed.data;
 
   await prisma.$transaction(async (tx) => {
-    await tx.nomination.updateMany({ where: { dataPrincipalId: principal.id, active: true }, data: { active: false } });
-    const nomination = await tx.nomination.create({
-      data: {
-        dataPrincipalId: principal.id,
-        nomineeName: encrypt(name),
-        relationship: encrypt(relationship),
-        contact: encrypt(contact.value)
-      }
+    // The latest NOMINATION request is the current nominee; earlier ones are history.
+    const request = await recordRequest(tx, {
+      principal,
+      type: 'NOMINATION',
+      method: verificationMethod(session),
+      payload: { nominee: encrypt(JSON.stringify({ name, relationship, contact: contact.value })) }
     });
-    await recordRequest(tx, { principal, type: 'NOMINATION', method: verificationMethod(session), payload: { nominationId: nomination.id } });
-    await audit({ actor, action: 'CREATE', entity: 'Nomination', entityId: nomination.id, ipHash }, tx);
+    await audit({ actor, action: 'CREATE', entity: 'RightsRequest', entityId: request.id, ipHash, detail: 'NOMINATION' }, tx);
   });
 
   res.status(200).json(withContact({ ok: true, summary: buildSummary(await loadPrincipal(principal.id)) }));

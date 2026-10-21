@@ -84,7 +84,7 @@ async function main() {
   if (!DRY_RUN) {
     for (const p of toErase) {
       await prisma.$transaction([
-        prisma.nomination.deleteMany({ where: { dataPrincipalId: p.id } }),
+        prisma.rightsRequest.updateMany({ where: { dataPrincipalId: p.id, type: 'NOMINATION' }, data: { payload: null } }),
         prisma.otpChallenge.deleteMany({ where: { dataPrincipalId: p.id } }),
         prisma.dataPrincipal.update({ where: { id: p.id }, data: { name: null, phone: null, email: null, erasedAt: new Date() } })
       ]);

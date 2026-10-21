@@ -126,7 +126,6 @@ model DataPrincipal {
   consents       ConsentRecord[]
   rightsRequests RightsRequest[]
   grievances     Grievance[]
-  nominations    Nomination[]
   otpChallenges  OtpChallenge[]
 }
 
@@ -170,8 +169,10 @@ model OtpChallenge {
   @@index([dataPrincipalId, createdAt])
 }
 
-// s.11–s.14 requests. `payload` / `response` are JSON strings with no raw
-// contact details (corrections are stored encrypted inside payload).
+// Requests about a person's data (access, correction, erasure, withdrawal, nomination).
+// `payload` / `response` are JSON strings with no plaintext contact details. A NOMINATION
+// request holds the nominee encrypted in payload.nominee; the latest one is the current
+// nominee (DPDP s.14 / Rule 14(4), from about May 2027).
 model RightsRequest {
   id                 String            @id @default(cuid())
   createdAt          DateTime          @default(now())
@@ -212,18 +213,6 @@ model Grievance {
   @@index([status, dueDate])
 }
 
-// s.14 / Rule 14(4): nominee who may exercise rights on death or incapacity.
-model Nomination {
-  id              String        @id @default(cuid())
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  dataPrincipalId String
-  dataPrincipal   DataPrincipal @relation(fields: [dataPrincipalId], references: [id], onDelete: Cascade)
-  nomineeName     String // encrypted
-  relationship    String // encrypted
-  contact         String // encrypted
-  active          Boolean       @default(true)
-}
 
 // Rule 6(1)(c) / Rule 8(3): who accessed or changed personal data, and when.
 // Holds identifiers only, never the personal data itself.
