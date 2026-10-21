@@ -1,4 +1,5 @@
 import NextLink from 'components/NextLink';
+import { CLINIC } from 'config/compliance';
 
 /**
  * Hero section with heading, subheading, and call-to-action.
@@ -31,7 +32,7 @@ const Hero = () => {
                   className="lato lead fs-18 lh-sm mb-7 text-white animate__animated animate__slideInRight animate__delay-3s"
                   aria-label="Supporting text"
                 >
-                  Discover the difference exceptional dentistry makes with Dental Clinic — an SEO-optimized dental website template.
+                  Discover the difference exceptional dentistry makes at {CLINIC.tradeName}.
                 </p>
                 <div className="animate__animated animate__slideInUp animate__delay-3s merriweather">
                   <NextLink

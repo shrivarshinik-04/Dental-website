@@ -1,82 +1,129 @@
 /**
- * Compliance configuration: DPDP Act 2023 and DPDP Rules 2025.
+ * Organisation, privacy and retention configuration for this test environment.
  *
- * Every `[PLACEHOLDER]` the clinic owner must fill in lives in this file (see the
- * checklist in README.md). It is imported by the Next.js app and by the cron
- * scripts in /scripts, so it is written as CommonJS on purpose.
+ * Current law (in force): IT Act 2000 s.43A and the IT (Reasonable Security Practices
+ * and Procedures and Sensitive Personal Data or Information) Rules 2011 ("SPDI Rules").
+ * DPDP Act 2023 and DPDP Rules 2025: substantive provisions expected from about
+ * 13 May 2027 (G.S.R. 843(E); exact day to be confirmed). See docs/audit/02-legal-matrix.md.
  *
- * Nothing in here is secret: it is bundled into the browser. Keys go in .env.
+ * ALL ORGANISATION DETAILS BELOW ARE FICTITIOUS SAMPLES (IS_SAMPLE = true). While
+ * IS_SAMPLE is true, every contact block shows a "Sample details: test environment"
+ * badge. Replace the values and set IS_SAMPLE to false only with real, confirmed details.
+ *
+ * Imported by the Next.js app and by the scripts in /scripts, so written as CommonJS.
+ * Nothing here is secret: it is bundled into the browser. Keys go in .env.
  */
 
-// ---------------------------------------------------------------------------
-// Who we are: the Data Fiduciary (s.2(i)).
-// ---------------------------------------------------------------------------
+const IS_SAMPLE = true;
+
+const HOURS = 'Monday to Saturday, 10am to 2pm and 5pm to 8pm IST';
+
+// Data Fiduciary / body corporate operating the site.
 const CLINIC = {
-  legalName: '[CLINIC LEGAL NAME]',
-  tradeName: 'Dental Clinic',
-  address: '[REGISTERED ADDRESS, CITY, STATE, PIN]',
-  phone: '[CLINIC PHONE]',
-  email: '[CLINIC EMAIL]',
-  website: '[https://YOUR-DOMAIN.in]'
+  isSample: IS_SAMPLE,
+  legalName: 'Smile Dental Clinic (Sample) Pvt. Ltd.',
+  tradeName: 'Smile Dental Clinic (Sample)',
+  address: '[Sample address], India',
+  phone: '+91 00000 00001',
+  email: 'info@smiledental.example.com',
+  website: 'https://smiledental.example.com',
+  hours: HOURS,
+  hoursShort: 'Mon–Sat 10am–2pm, 5pm–8pm'
 };
 
-// ---------------------------------------------------------------------------
-// s.8(9) + Rule 9: business contact of the person who can answer questions about
-// processing. Also acts as the grievance officer for s.13. Must be published
-// prominently on the website and quoted in every response to a rights request.
-// ---------------------------------------------------------------------------
-const CONTACT_PERSON = {
-  name: '[CONTACT PERSON NAME]',
-  designation: 'Grievance Officer / Data Protection Contact',
-  email: '[privacy@YOUR-DOMAIN.in]',
-  phone: '[CONTACT PHONE]',
-  address: '[POSTAL ADDRESS FOR PRIVACY QUERIES]',
-  hours: 'Monday to Saturday, 10am to 6pm IST'
+// SPDI Rules 2011, Rule 5(9) (in force): Grievance Officer whose name and contact details
+// are published on the website and who redresses grievances within one month.
+const GRIEVANCE_OFFICER = {
+  isSample: IS_SAMPLE,
+  name: 'Dr. A. Sample (Grievance Officer)',
+  designation: 'Grievance Officer',
+  email: 'grievance@smiledental.example.com',
+  phone: '+91 00000 00002',
+  address: '[Sample address], India',
+  hours: HOURS
 };
 
-// s.13(3): the Data Principal may approach the Board after exhausting our grievance
-// mechanism. [CONFIRM] the Board's official complaint URL before going live.
+// DPDP Act s.8(9) + DPDP Rules, Rule 9 (from about May 2027): business contact of a person
+// who can answer questions about processing; quoted in every response to a rights request.
+// Not a "Data Protection Officer": a DPO is required only for a notified Significant
+// Data Fiduciary (s.10).
+const PRIVACY_CONTACT = {
+  isSample: IS_SAMPLE,
+  name: 'R. Sample (Privacy Contact)',
+  designation: 'Privacy Contact',
+  email: 'privacy@smiledental.example.com',
+  phone: '+91 00000 00003',
+  address: '[Sample address], India',
+  hours: HOURS
+};
+
+const APPOINTMENTS_DESK = {
+  isSample: IS_SAMPLE,
+  name: 'Appointments desk (Sample)',
+  email: 'appointments@smiledental.example.com',
+  phone: '+91 00000 00004'
+};
+
+// Owner of the breach / incident procedure (docs/BREACH-RESPONSE.md). CERT-In Directions
+// 2022, direction (ii): report listed incidents to CERT-In within 6 hours of noticing.
+const INCIDENT_OWNER = {
+  isSample: IS_SAMPLE,
+  name: 'S. Sample (Incident Owner)',
+  email: 'security@smiledental.example.com',
+  phone: '+91 00000 00005'
+};
+
+// Kept for existing imports: the person quoted in responses to rights requests.
+const CONTACT_PERSON = PRIVACY_CONTACT;
+
+// The Board's official complaint URL could not be verified on MeitY's or the Board's site
+// (checked 21 Oct 2026). Leave url empty: the UI then shows
+// "Official complaint link to be confirmed" instead of a guessed link.
 const DATA_PROTECTION_BOARD = {
   name: 'Data Protection Board of India',
-  url: '[https://DATA-PROTECTION-BOARD-OFFICIAL-URL]'
+  url: '',
+  urlPendingText: 'Official complaint link to be confirmed'
 };
 
-// ---------------------------------------------------------------------------
-// s.16 + Rule 15: where the data is stored and processed.
-// ---------------------------------------------------------------------------
+// Where the data is stored (DPDP s.16 / Rule 15 from about May 2027; CERT-In log
+// location now). Not chosen yet.
 const HOSTING = {
-  provider: '[HOSTING PROVIDER]',
-  location: '[HOSTING REGION, e.g. Mumbai, India]',
-  // Set to true if any personal data is stored or processed outside India. Then
-  // list the countries in the privacy policy and check them against any
-  // restriction notified by the Central Government under s.16(1) / Rule 15.
+  isSample: IS_SAMPLE,
+  provider: 'Sample hosting provider (not yet chosen)',
+  location: 'India (sample; not yet confirmed)',
+  // Set to true, and list the countries, if any personal data is stored or processed
+  // outside India.
   crossBorder: false,
   countries: []
 };
 
-// s.8(2): Data Processors engaged under a valid contract. Shown on the privacy
-// policy and in the s.11(1)(b) access summary.
+// Service providers that would receive personal data. None is configured yet; the
+// privacy policy and the access summary show `configured: false` as "not yet configured".
+// Before configuring one: put a contract in place and update the notice (SPDI Rules 5(3), 6).
 const PROCESSORS = [
   {
     id: 'hosting',
-    name: '[HOSTING PROVIDER]',
+    name: HOSTING.provider,
     purpose: 'Hosting the website and database',
-    dataShared: 'All data described in our privacy notice (stored encrypted)',
-    location: '[HOSTING REGION]'
+    dataShared: 'All data described in our privacy policy (sensitive fields stored encrypted)',
+    location: HOSTING.location,
+    configured: false
   },
   {
     id: 'sms',
-    name: '[SMS / WHATSAPP PROVIDER]',
-    purpose: 'Sending one-time codes and, if you opt in, appointment reminders',
-    dataShared: 'Phone number, message text',
-    location: '[PROVIDER REGION]'
+    name: 'SMS / WhatsApp provider (sample)',
+    purpose: 'Sending one-time codes for identity verification',
+    dataShared: 'Mobile number, message text',
+    location: 'Not applicable',
+    configured: false
   },
   {
     id: 'email',
-    name: '[EMAIL PROVIDER]',
-    purpose: 'Sending one-time codes and replies to your requests',
+    name: 'Email provider (sample)',
+    purpose: 'Sending one-time codes and replies to requests',
     dataShared: 'Email address, message text',
-    location: '[PROVIDER REGION]'
+    location: 'Not applicable',
+    configured: false
   }
 ];
 
@@ -206,7 +253,12 @@ const ANALYTICS = {
 };
 
 module.exports = {
+  IS_SAMPLE,
   CLINIC,
+  GRIEVANCE_OFFICER,
+  PRIVACY_CONTACT,
+  APPOINTMENTS_DESK,
+  INCIDENT_OWNER,
   CONTACT_PERSON,
   DATA_PROTECTION_BOARD,
   HOSTING,

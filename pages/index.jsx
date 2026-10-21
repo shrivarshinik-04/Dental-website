@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import Head from 'next/head';
+import { CLINIC } from 'config/compliance';
 import Hero from 'components/Hero';
 import Services from 'components/Services';
 import Facts from 'components/Facts';
@@ -9,11 +10,8 @@ const Home = () => (
   <Fragment>
     <PageProgress />
     <Head>
-      <title>DentalClinic – Free Next.js Template for Dentists & Clinics</title>
-      <meta
-        name="description"
-        content="Free Next.js Medical Template for Dentists, Clinics & Healthcare Professionals – Built with Bootstrap"
-      />
+      <title>{CLINIC.tradeName}</title>
+      <meta name="description" content={`${CLINIC.tradeName}: a fictitious dental clinic used as a privacy test environment.`} />
     </Head>
 
     <main className="content-wrapper overflow-hidden">

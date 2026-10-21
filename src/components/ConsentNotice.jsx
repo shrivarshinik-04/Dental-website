@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { DATA_PROTECTION_BOARD } from 'config/compliance';
 import { useT } from 'lib/i18n';
+import BoardLink from 'components/BoardLink';
 import ContactBlock from 'components/ContactBlock';
 import LanguageSwitcher from 'components/LanguageSwitcher';
 
@@ -68,9 +68,7 @@ const ConsentNotice = ({ dataKeys, purposeKeys, headingLevel = 2, showSwitcher =
           <Link href="/cookie-policy">{t('notice.links.cookies')}</Link>
         </li>
         <li className="list-inline-item">
-          <a href={DATA_PROTECTION_BOARD.url} target="_blank" rel="noopener noreferrer">
-            {t('notice.links.board')}
-          </a>
+          <BoardLink />
         </li>
       </ul>
 

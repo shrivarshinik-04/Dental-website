@@ -5,12 +5,12 @@
  */
 import { Fragment, useEffect, useState } from 'react';
 import Head from 'next/head';
-import { DATA_PROTECTION_BOARD } from 'config/compliance';
 import { useT } from 'lib/i18n';
 import { postJson } from 'lib/api';
 import PageHeader from 'components/PageHeader';
 import LanguageSwitcher from 'components/LanguageSwitcher';
 import VerifyIdentity from 'components/VerifyIdentity';
+import BoardLink from 'components/BoardLink';
 import ContactBlock from 'components/ContactBlock';
 
 const CATEGORIES = ['CONSENT', 'ACCESS', 'CORRECTION', 'SECURITY', 'OTHER'];
@@ -78,9 +78,7 @@ const Grievance = () => {
                     <strong>{new Date(result.dueDate).toLocaleDateString(language === 'hi' ? 'hi-IN' : 'en-IN', { dateStyle: 'long' })}</strong>
                   </p>
                   <p className="fs-15 mb-2">{t('grievance.board')}</p>
-                  <a href={DATA_PROTECTION_BOARD.url} target="_blank" rel="noopener noreferrer" className="fs-15">
-                    {t('notice.links.board')}
-                  </a>
+                  <BoardLink className="fs-15" />
                 </div>
               ) : (
                 <Fragment>

@@ -8,6 +8,8 @@ import ListItemLink from 'components/ListItemLink';
 import DropdownToggleLink from 'components/DropdownToggleLink';
 
 import { services } from '../data';
+import { CLINIC } from 'config/compliance';
+import SampleBadge from 'components/SampleBadge';
 
 const Navbar = ({
   fancy = false, // <-- ADD THIS
@@ -27,7 +29,7 @@ const Navbar = ({
           href="/"
           title={
             <Image
-              alt="Dental Clinic - SEO Optimized Dental Website Template"
+              alt={`${CLINIC.tradeName} logo`}
               className="py-2"
               src="/img/logo.webp"
               width={150}
@@ -48,7 +50,7 @@ const Navbar = ({
             href="/"
             title={
               <Image
-                alt="Dental Clinic - SEO Optimized Dental Website Template"
+                alt={`${CLINIC.tradeName} logo`}
                 className="py-2"
                 src="/img/logo-light.webp"
                 width={150}
@@ -111,13 +113,11 @@ const Navbar = ({
           {/* ============= Show contact info on small devices ============= */}
           <div className="offcanvas-footer d-lg-none">
             <div>
-              <NextLink
-                title="company@gmail.com"
-                className="link-inverse"
-                href="mailto:company@gmail.com"
-              />
+              <SampleBadge className="mb-2" />
               <br />
-              <NextLink href="tel:+911234567890" title="+9180008 50036" />
+              <NextLink title={CLINIC.email} className="link-inverse" href={`mailto:${CLINIC.email}`} />
+              <br />
+              <NextLink href={`tel:${CLINIC.phone.replace(/\s/g, '')}`} title={CLINIC.phone} />
               <br />
               <SocialLinks />
             </div>

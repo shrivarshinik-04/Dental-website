@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { Fragment, useEffect, useState } from 'react';
 import ThemeProvider from 'theme/ThemeProvider';
 import Layout from 'components/Layout';
+import { CLINIC } from 'config/compliance';
 import { ConsentProvider } from 'lib/consentStore';
 import { LanguageProvider } from 'lib/i18n';
 
@@ -55,14 +56,11 @@ function MyApp({ Component, pageProps }) {
       <Head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>DentalClinic – Free Next.js Template for Dentists & Clinics</title>
-        <meta
-          name="description"
-          content="Free Next.js Template for Dentists, Clinics & Doctors – Built with Bootstrap"
-        />
+        <title>{CLINIC.tradeName}</title>
+        <meta name="description" content={`${CLINIC.tradeName}: a fictitious dental clinic used as a privacy test environment.`} />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="DentalClinic – Free Next.js Template for Dentists & Clinics" />
-        <meta property="og:description" content="Free Next.js Template for Dentists, Clinics & Doctors – Built with Bootstrap" />
+        <meta property="og:title" content={CLINIC.tradeName} />
+        <meta property="og:description" content={`${CLINIC.tradeName}: a fictitious dental clinic used as a privacy test environment.`} />
       </Head>
       <ConsentProvider>
         <LanguageProvider>

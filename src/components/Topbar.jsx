@@ -1,14 +1,19 @@
+import { APPOINTMENTS_DESK, CLINIC } from 'config/compliance';
+import SampleBadge from 'components/SampleBadge';
+
 const Topbar = () => {
   const contactItems = [
     {
-      href: 'tel:+911234567890',
+      href: `tel:${APPOINTMENTS_DESK.phone.replace(/\s/g, '')}`,
       icon: 'uil-phone-volume',
-      text: '+91 12345 67890',
+      text: APPOINTMENTS_DESK.phone,
     },
     {
-      href: 'mailto:company@gmail.com',
+      href: `mailto:${APPOINTMENTS_DESK.email}`,
       icon: 'uil-envelope',
-      text: 'company@gmail.com',
+      text: APPOINTMENTS_DESK.email,
+      // Hidden on narrow screens so the bar stays one row; the footer lists it too.
+      className: 'd-none d-lg-flex',
     },
   ];
 
@@ -27,16 +32,16 @@ const Topbar = () => {
     <section className="bg-color d-none d-md-block">
       <div className="container text-white">
         <div className="row justify-content-between align-items-center">
-          <div className="col-lg-6 d-none d-xl-flex">
+          <div className="col-auto d-none d-xxl-flex">
             <p className="m-0 text-white lato">
-              Opening Time: &nbsp; Monday To Saturday - (10am to 2pm & 5pm to 8pm)
+              Opening Time: &nbsp; {CLINIC.hoursShort}
             </p>
           </div>
 
-          {contactItems.map(({ href, icon, text }, index) => (
+          {contactItems.map(({ href, icon, text, className = 'd-flex' }, index) => (
             <div
               key={index}
-              className="d-flex flex-row align-items-center justify-content-center col-auto me-2"
+              className={`${className} flex-row align-items-center justify-content-center col-auto me-2`}
             >
               <div className="icon text-white fs-22 mt-1 me-2">
                 <i className={`uil ${icon}`} />
@@ -46,6 +51,10 @@ const Topbar = () => {
               </a>
             </div>
           ))}
+
+          <div className="col-auto">
+            <SampleBadge />
+          </div>
 
           <div className="d-flex flex-row align-items-center justify-content-center col-auto">
             {socialLinks.map(({ href, icon }, index) => (

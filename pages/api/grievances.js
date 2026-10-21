@@ -19,7 +19,7 @@ import { addDays, allowMethods, hashedIp, rateLimit, requireSameOrigin, withErro
 
 const escalationNote = (dueDate) =>
   `If you are not satisfied with our response, or do not receive one by ${dueDate.toISOString().slice(0, 10)}, ` +
-  `you may complain to the ${DATA_PROTECTION_BOARD.name} (${DATA_PROTECTION_BOARD.url}) under section 13(3) of the ` +
+  `you may complain to the ${DATA_PROTECTION_BOARD.name} (${DATA_PROTECTION_BOARD.url || DATA_PROTECTION_BOARD.urlPendingText}) under section 13(3) of the ` +
   'Digital Personal Data Protection Act, 2023, after exhausting this grievance redressal mechanism.';
 
 export default withErrors(async (req, res) => {

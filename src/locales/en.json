@@ -11,8 +11,12 @@
     "cancel": "Cancel",
     "loading": "Please wait…",
     "error": "Something went wrong. Please try again.",
-    "contactBlockTitle": "Questions about your personal data?",
-    "contactBlockText": "Contact our Grievance Officer / Data Protection Contact:"
+    "contactBlockTitle": "Questions or complaints about your personal data?",
+    "sampleBadge": "Sample details: test environment",
+    "grievanceOfficer": "Grievance Officer",
+    "grievanceOfficerNote": "We resolve grievances within one month of receiving them.",
+    "privacyContact": "Questions about how we use your data",
+    "boardLinkPending": "official complaint link to be confirmed"
   },
   "notice": {
     "title": "Privacy notice",

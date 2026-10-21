@@ -8,7 +8,6 @@ import Head from 'next/head';
 import Link from 'next/link';
 import {
   CLINIC,
-  DATA_PROTECTION_BOARD,
   GRIEVANCE_RESPONSE_DAYS,
   HOSTING,
   LANGUAGES,
@@ -20,6 +19,7 @@ import {
   RIGHTS_RESPONSE_DAYS
 } from 'config/compliance';
 import PageHeader from 'components/PageHeader';
+import BoardLink from 'components/BoardLink';
 import ContactBlock from 'components/ContactBlock';
 
 const Section = ({ id, title, children }) => (
@@ -329,9 +329,7 @@ const PrivacyPolicy = () => (
               </p>
               <p className="mb-0">
                 If you are not satisfied with our reply, you may complain to the{' '}
-                <a href={DATA_PROTECTION_BOARD.url} target="_blank" rel="noopener noreferrer">
-                  {DATA_PROTECTION_BOARD.name}
-                </a>{' '}
+                <BoardLink />{' '}
                 after using our grievance process (s.13(3)). Nothing in our notices or forms takes away that right.
               </p>
             </Section>

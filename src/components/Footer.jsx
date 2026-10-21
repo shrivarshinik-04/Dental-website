@@ -5,6 +5,8 @@ import Image from 'next/image';
 import { useConsent } from 'lib/consentStore';
 import { useT } from 'lib/i18n';
 import { services, usefulLinks, legalLinks } from '../data';
+import { APPOINTMENTS_DESK, CLINIC } from 'config/compliance';
+import SampleBadge from 'components/SampleBadge';
 
 /**
  * Renders a footer widget with a title and list of links.
@@ -46,14 +48,15 @@ const Footer = () => {
               <div className="mb-5">
                 <Image
                   src="/img/logo-light.webp"
-                  alt="Dental Clinic Logo"
+                  alt={`${CLINIC.tradeName} logo`}
                   width={200}
                   height={100}
                   className="text-center"
                 />
               </div>
               <p className="lead mb-5 fs-18 text-white lato text-justify">
-                Lorem ipsum dolor sit amet consectetur adipisicing elit. Officiis quas ratione odit, iste minima, debitis aliquam asperiores ab accusantium error.
+                {CLINIC.tradeName} is a fictitious clinic used as a privacy test environment. It is not a real
+                healthcare provider.
               </p>
               <h3 className="fs-24 text-white merriweather">Follow Us On</h3>
               <SocialLinks className="nav social text-md-end" />
@@ -73,22 +76,25 @@ const Footer = () => {
           <div className="col-md-4 col-lg-3 mt-md-5 mt-lg-0 mt-10">
             <div className="widget">
               <h3 className="widget-title fs-24 mb-3 merriweather">Contact Us</h3>
+              <SampleBadge className="mb-3" />
               <div className="d-flex mb-3">
                 <i className="uil uil-location-pin-alt fs-30 text-white" />
                 <address className="ms-2 text-white lato">
-                  123 Main Street, Springfield, IL 62704, United States
+                  {CLINIC.legalName}
+                  <br />
+                  {CLINIC.address}
                 </address>
               </div>
               <div className="d-flex mb-3 align-items-center">
                 <i className="uil uil-envelope fs-26 text-white" />
-                <a href="mailto:company@gmail.com" className="ms-2 text-white lato">
-                  company@gmail.com
+                <a href={`mailto:${APPOINTMENTS_DESK.email}`} className="ms-2 text-white lato">
+                  {APPOINTMENTS_DESK.email}
                 </a>
               </div>
               <div className="d-flex align-items-center">
                 <i className="uil uil-phone-volume fs-26 text-white" />
-                <a href="tel:+911234567890" className="ms-2 text-white lato fs-18">
-                  +91 12345 67890
+                <a href={`tel:${APPOINTMENTS_DESK.phone.replace(/\s/g, '')}`} className="ms-2 text-white lato fs-18">
+                  {APPOINTMENTS_DESK.phone}
                 </a>
               </div>
             </div>
@@ -97,7 +103,7 @@ const Footer = () => {
 
         <hr className="mt-4 mt-md-4 mb-7" />
 
-        {/* DPDP Rules 2025, Rule 9: contact for questions about personal data, shown prominently. */}
+        {/* Grievance Officer (SPDI Rules 2011, Rule 5(9), now) and privacy contact (DPDP Rules, Rule 9, from about May 2027), shown prominently. */}
         <div className="row gy-4 align-items-center mb-7">
           <div className="col-lg-8">
             <ContactBlock variant="dark" />
@@ -113,7 +119,7 @@ const Footer = () => {
 
         <div className="d-md-flex align-items-center justify-content-center">
           <p className="mb-2 mb-lg-0 text-white lato text-center">
-            © {currentYear} Dental Clinic - SEO Optimized Dental Website Template. All rights reserved.
+            © {currentYear} {CLINIC.legalName}. Sample site for privacy testing.
           </p>
         </div>
       </div>
