@@ -23,6 +23,7 @@ agreement that you, not this code, must put in place.
 | Google Fonts (`fonts.googleapis.com`, `fonts.gstatic.com`) | **Removed** by the previous agent (template loaded them in `pages/_document.jsx` and `src/assets/scss/theme/_reboot.scss`) | None now | Fonts self-hosted via `@fontsource/*` (npm packages bundled at build) |
 | Unicons icon font | Self-hosted in `public/fonts/unicons` [T] | None | — |
 | Images | Self-hosted `public/img` [T] | None | Placeholders (see `01` §12) |
+| Gallery photos (Unsplash) | Downloaded once and **served from this site** (`public/img/gallery/`, credits in `CREDITS.md`) | None at runtime; photographer credit links are outbound links only | Unsplash License: free to use, no permission needed |
 | Analytics, ads, tag managers, pixels, maps, video embeds | **None** | — | `ANALYTICS.src` empty; plyr-react installed but no player rendered |
 | Facebook, Instagram | **Outbound links only** (Topbar, footer, mobile menu) | Only if the visitor clicks: the browser sends the site origin as Referer (`strict-origin-when-cross-origin`) | Links point to generic `facebook.com` / `instagram.com`, not a clinic page (B-06) |
 

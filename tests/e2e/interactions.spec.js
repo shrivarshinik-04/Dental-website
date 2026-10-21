@@ -148,3 +148,62 @@ test('admin navigation: every section link loads for the admin role', async ({ b
   expect(messages).toEqual([]);
   await ctx.close();
 });
+
+for (const viewport of [
+  { name: 'desktop', width: 1280, height: 900 },
+  { name: 'phone', width: 375, height: 812, isMobile: true, hasTouch: true }
+]) {
+  test(`every navbar item navigates to its destination (${viewport.name})`, async ({ browser, baseURL }) => {
+    const { name, isMobile, hasTouch, ...size } = viewport;
+    const ctx = await newContext(browser, { viewport: size, isMobile, hasTouch });
+    await ctx.addCookies([consentCookie(baseURL)]);
+    const page = await ctx.newPage();
+    const targets = [
+      ['Home', '/', 'Your Smile, Our Commitment'],
+      ['About Us', '/about', 'About Us'],
+      ['Gallery', '/gallery', 'Gallery'],
+      ['Contact Us', '/contact', 'Contact Us']
+    ];
+    for (const [label, path, heading] of targets) {
+      await page.goto('/sitemap', { waitUntil: 'networkidle' });
+      if (name === 'phone') {
+        await page.locator('.offcanvas-nav-btn').first().tap();
+        await expect(page.locator('#offcanvas-nav.show')).toBeVisible();
+      }
+      await page.locator('#offcanvas-nav .navbar-nav').getByRole('link', { name: label, exact: true }).click();
+      await expect(page).toHaveURL(new RegExp(`${path === '/' ? '/$' : `${path}$`}`));
+      await expect(page.getByRole('heading', { name: heading }).first()).toBeVisible();
+    }
+    // Services menu: "All services" and one service anchor
+    await page.goto('/', { waitUntil: 'networkidle' });
+    if (name === 'phone') await page.locator('.offcanvas-nav-btn').first().tap();
+    await page.locator('#offcanvas-nav .dropdown-toggle').first().click();
+    await page.locator('#offcanvas-nav .dropdown-menu.show').getByRole('link', { name: 'All services' }).click();
+    await expect(page).toHaveURL(/\/services$/);
+    await expect(page.getByRole('heading', { name: 'Our Services' })).toBeVisible();
+    await ctx.close();
+  });
+}
+
+test('gallery: photos load from this site and open in an accessible viewer', async ({ browser, baseURL }) => {
+  const ctx = await newContext(browser);
+  await ctx.addCookies([consentCookie(baseURL)]);
+  const page = await ctx.newPage();
+  const external = [];
+  page.on('request', (r) => !r.url().startsWith(baseURL) && !r.url().startsWith('data:') && external.push(r.url()));
+  await page.goto('/gallery', { waitUntil: 'networkidle' });
+  const photos = page.locator('main figure img');
+  await expect(photos).toHaveCount(8);
+  expect(await photos.evaluateAll((imgs) => imgs.every((i) => i.complete && i.naturalWidth > 0))).toBe(true);
+  expect(external).toEqual([]);
+  await page.getByRole('button', { name: 'Open photo: Treatment room' }).click();
+  const viewer = page.getByRole('dialog', { name: 'Treatment room' });
+  await expect(viewer).toBeVisible();
+  await expect(viewer.getByRole('button', { name: 'Close' })).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('dialog', { name: 'Waiting area' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Open photo: Treatment room' })).toBeFocused();
+  await ctx.close();
+});

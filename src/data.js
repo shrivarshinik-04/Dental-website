@@ -16,9 +16,23 @@ export const usefulLinks = [
   { id: 1, title: 'Home', href: '/' },
   { id: 2, title: 'About Us', href: '/about' },
   { id: 3, title: 'Services', href: '/services' },
+  { id: 7, title: 'Gallery', href: '/gallery' },
   { id: 4, title: 'Contact Us', href: '/contact' },
   { id: 5, title: 'Book Appointment', href: '/book-appointment' },
   { id: 6, title: 'Sitemap', href: '/sitemap' }
+];
+
+// ===================== Gallery =====================
+// Stock photos (Unsplash License) served from /public/img/gallery; see CREDITS.md there.
+export const gallery = [
+  { id: 1, src: '/img/gallery/treatment-room.webp', title: 'Treatment room', alt: 'Bright dental treatment room with a patient chair, overhead light and cabinets', photographer: 'Benyamin Bohlouli', source: 'https://unsplash.com/photos/e7MJLM5VGjY' },
+  { id: 2, src: '/img/gallery/waiting-room.webp', title: 'Waiting area', alt: 'Waiting area wall with an olive tree and a sign reading "Smile like you mean it"', photographer: 'Amy Vosters', source: 'https://unsplash.com/photos/pxOQ-P97sA8' },
+  { id: 3, src: '/img/gallery/dental-chair.webp', title: 'Dental chair', alt: 'Orange dental chair with an overhead lamp in a sunlit surgery', photographer: 'Atikah Akhtar', source: 'https://unsplash.com/photos/XJptUS8nbhs' },
+  { id: 4, src: '/img/gallery/consultation.webp', title: 'Consultation', alt: 'Dentist talking with a smiling patient seated in the dental chair', photographer: 'Harold Hisona', source: 'https://unsplash.com/photos/Bg81yWKZlMg' },
+  { id: 5, src: '/img/gallery/instruments.webp', title: 'Sterile instruments', alt: 'Gloved hand holding a dental mirror, probe and tweezers', photographer: 'Katarzyna Zygnerska', source: 'https://unsplash.com/photos/98eodnv1abo' },
+  { id: 6, src: '/img/gallery/implant-model.webp', title: 'Implant model', alt: 'Model showing a dental implant between two natural teeth', photographer: 'Jonathan Borba', source: 'https://unsplash.com/photos/W9YEY6G8LVM' },
+  { id: 7, src: '/img/gallery/procedure.webp', title: 'Treatment in progress', alt: 'Dentist and assistant in protective gowns treating a patient', photographer: 'Jonathan Borba', source: 'https://unsplash.com/photos/hl6uG9cHW5A' },
+  { id: 8, src: '/img/gallery/x-ray-review.webp', title: '3D scan review', alt: 'Dentist reviewing 3D dental scans on a light box', photographer: 'Jonathan Borba', source: 'https://unsplash.com/photos/v_2FRXEba94' }
 ];
 
 // ===================== Privacy & Legal (DPDP Act 2023) =====================

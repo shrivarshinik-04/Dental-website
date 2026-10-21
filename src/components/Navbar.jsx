@@ -113,6 +113,9 @@ const Navbar = ({
               </ul>
             </li>
             <li className="nav-item" data-bs-dismiss="offcanvas">
+              <NextLink href="/gallery" title="Gallery" className="nav-link" />
+            </li>
+            <li className="nav-item" data-bs-dismiss="offcanvas">
               <NextLink href="/contact" title="Contact Us" className="nav-link" />
             </li>
             <li
