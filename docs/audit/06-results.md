@@ -14,7 +14,7 @@ conclusions depend on the legal confirmations listed in §4.
 | Production build | `npm run build` (into `.next-test`) | **Pass**: compiled, no errors or warnings |
 | Lint | `npm run lint` (ESLint 8, `next/core-web-vitals`) | **Pass**: 0 problems |
 | Type check | — | **Not applicable**: JavaScript project, no TypeScript |
-| End-to-end tests | `npm test` (Playwright 1.64.1, production build, synthetic `prisma/test.db`) | **Pass**: 74 passed, 0 failed |
+| End-to-end tests | `npm test` (Playwright 1.64.1, production build, synthetic `prisma/test.db`) | **Pass**: 76 passed, 0 failed; stored-data check over every record the run creates: no problems |
 | Dependency audit | `npm audit --omit=dev` | **Fail (residual, assessed)**: 5 findings (1 critical, 4 high) in `next`, bundled `postcss`, and the Prisma CLI; none in a feature this site uses (see `docs/SECURITY.md` "Dependency status") |
 | Manual: production build over plain HTTP by IP | scratch build, Chromium at `http://<wsl-ip>:3100` | **Pass**: no HTTPS upgrade, styles and scripts load, banner renders |
 | Manual: `X-Forwarded-For` spoofing without `TRUST_PROXY` | 7 requests with different spoofed IPs | **Pass**: 6th request rate-limited (429) |
@@ -66,6 +66,7 @@ Status values as required: Pass · Fail · Not implemented · Not applicable · 
 | 36 | Public text names laws by title only, with no section, rule or schedule numbers (English and Hindi, every public page, banner, booking form with the child option, rights dashboard, API messages); banner asks again after the notice changes | Pass | `plain-language.spec.js` |
 | 37 | Parent or guardian details for a patient under 18: section hidden by default, shown inline for a minor with a polite announcement and focus on the first field, cleared when switched back; keyboard order and 375px; client and server validation with field-level errors; an adult's crafted guardian fields not stored; encrypted at rest; no analytics; consent given by the guardian, linked to the booking, current notice version; one-time code to the guardian's contact; shown, corrected and erased through the rights page; staff views audited | Pass | `guardian.spec.js`; `rights.spec.js` "returning patient …" |
 | 38 | Every form validated against its API and the database: required fields, invalid input, consent handling, successful submissions read back from the database (decrypted, field by field) and error responses (400/401/403/405/409), for booking (adult and under 18), cookie banner, rights sign-in, correction, nomination, consent withdrawal, download, erasure, grievance (with and without a reference ID) and the admin appointment, grievance, rights, incident and consent-filter forms | Pass | `forms.spec.js` (25 tests; runs only against the synthetic `prisma/test.db`) |
+| 39 | Stored data organised and consistent: every encrypted column holds ciphertext, each booking has its consent row given by the right person, consent rows match their notice language, guardians only on bookings for under-18 patients, corrections log field names only, no personal data in logs | Pass | `npm run data:check` (`scripts/check-data.js`); `data-check.spec.js`; suite teardown over all test data |
 
 ## 3. Defect status (`05-bugs.md`)
 

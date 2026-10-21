@@ -53,6 +53,8 @@ module.exports = defineConfig({
   retries: 0,
   timeout: 90000,
   reporter: [['list'], ['json', { outputFile: 'test-results/results.json' }]],
+  // After all tests: check everything the run stored in prisma/test.db (scripts/check-data.js).
+  globalTeardown: './tests/e2e/teardown.js',
   use: { baseURL: `http://localhost:${PORT}`, trace: 'off' },
   webServer: {
     command: `node tests/e2e/prepare-db.js && npx next build && npx next start -p ${PORT}`,

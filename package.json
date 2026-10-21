@@ -12,6 +12,7 @@
     "db:seed": "prisma db seed",
     "retention": "node scripts/retention.js",
     "retention:dry-run": "node scripts/retention.js --dry-run",
+    "data:check": "node scripts/check-data.js",
     "admin:hash-password": "node scripts/hash-password.js",
     "test": "playwright test"
   },

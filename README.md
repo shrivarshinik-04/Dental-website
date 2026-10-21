@@ -146,6 +146,7 @@ npm test                        # e2e tests: builds into .next-test, uses a synt
 </code></pre>
 <p><code>.env.development.local</code> is read only by <code>next dev</code>, so production builds never pick up <code>DEMO_MODE</code> by accident.</p>
 <ul>
+  <li><strong>Check stored data:</strong> <code>npm run data:check</code> (read-only) confirms that what the forms and the cookie banner stored is complete, encrypted and correctly linked; it prints only record IDs. What each form stores, and where: <code>docs/DATA-MODEL.md</code>.</li>
   <li><strong>Existing database:</strong> after pulling new migrations (for example <code>guardian_details</code>, which adds the parent or guardian's mobile and email to bookings), run <code>npx prisma migrate deploy</code>. It applies only the new migrations and keeps existing rows.</li>
   <li><strong>Seed:</strong> <code>npx prisma db seed</code> (re-runnable) stores the notice text for each language as a <code>NoticeVersion</code>. It runs automatically after <code>migrate dev</code>.</li>
   <li><strong>One-time codes:</strong> no SMS or email provider is connected yet, so the Data Rights page and verified grievances need <code>DEMO_MODE=true</code> (see below). Without it the API answers "online verification is not available yet". Codes are never written to logs.</li>
