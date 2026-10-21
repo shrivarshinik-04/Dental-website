@@ -115,3 +115,24 @@ test('grievance without a reference ID gets a reference and a due date within on
   expect(g.contactDetail).toMatch(/^v1:/);
   await ctx.close();
 });
+
+test('returning patient keeps one reference ID only after verification and only for the same person', async ({ browser, baseURL }) => {
+  const ctx = await newContext(browser);
+  const phone = testPhone();
+  const first = await bookViaApi(ctx.request, baseURL, { name: 'Test Returning Patient', phone });
+  const anonymous = await bookViaApi(ctx.request, baseURL, { name: 'Test Returning Patient', phone });
+  expect(anonymous.referenceId).not.toBe(first.referenceId); // no merge without verification
+  expect(await verifyViaApi(ctx.request, baseURL, first.referenceId, phone)).toBe(200);
+  const again = await bookViaApi(ctx.request, baseURL, { name: 'test returning patient', phone: `+91 ${phone}` });
+  expect([again.referenceId, again.json.reused]).toEqual([first.referenceId, true]);
+  const child = await bookViaApi(ctx.request, baseURL, {
+    name: 'Test Child Of Patient',
+    phone,
+    isMinor: true,
+    guardianName: 'Test Returning Patient',
+    guardianRelationship: 'MOTHER',
+    guardianDeclaration: true
+  });
+  expect(child.referenceId).not.toBe(first.referenceId); // different person, same phone
+  await ctx.close();
+});
