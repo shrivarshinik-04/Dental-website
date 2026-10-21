@@ -48,6 +48,8 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // The e2e tests build into a separate folder so a running `next dev` is not disturbed.
+  distDir: process.env.NEXT_DIST_DIR || '.next',
   reactStrictMode: false,
   poweredByHeader: false,
   images: {

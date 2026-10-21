@@ -40,3 +40,8 @@ tools/output
 .env
 prisma/*.db
 prisma/*.db-journal
+
+# e2e test build output and reports
+/.next-test/
+/test-results/
+/playwright-report/
