@@ -134,14 +134,15 @@ const PROCESSORS = [
 // src/locales/*.json changes: visitors are re-prompted and new consents point to
 // the new NoticeVersion row.
 // ---------------------------------------------------------------------------
-const NOTICE_VERSION = '2026-10-21.3';
+const NOTICE_VERSION = '2026-10-21.4';
 const NOTICE_EFFECTIVE_FROM = '2026-10-21';
 
 const POLICY_CHANGELOG = [
   { version: '2026-10-20.1', date: '2026-10-20', change: 'First version.' },
   { version: '2026-10-21.1', date: '2026-10-21', change: 'Removed optional appointment-reminder and marketing consents: no reminder or marketing process exists.' },
-  { version: '2026-10-21.2', date: '2026-10-21', change: 'Notice and policy now describe the law in force (IT Act s.43A, SPDI Rules 2011, CERT-In Directions) and label DPDP Act 2023 provisions as expected from about 13 May 2027; added who receives the data; sample organisation details.' },
-  { version: '2026-10-21.3', date: '2026-10-21', change: 'Added optional first-party analytics (page-visit counting, 90 days, erased on withdrawal); removed the unused marketing cookie category.' }
+  { version: '2026-10-21.2', date: '2026-10-21', change: 'Notice and policy now describe the laws that apply today and say which new rules are expected in 2027; added who receives the data; sample organisation details.' },
+  { version: '2026-10-21.3', date: '2026-10-21', change: 'Added optional first-party analytics (page-visit counting, 90 days, erased on withdrawal); removed the unused marketing cookie category.' },
+  { version: '2026-10-21.4', date: '2026-10-21', change: 'Rewrote the notice and policy in plain language without legal section or rule numbers.' }
 ];
 
 // s.5(3) / s.6(3): English plus languages from the Eighth Schedule. Add a locale
@@ -209,12 +210,14 @@ const OTP = {
 
 // Lawful ground for each processing purpose (s.4). Shown on the privacy policy.
 const PURPOSES = {
-  APPOINTMENT: { ground: 'Consent (s.6)', required: true },
+  // `ground` is shown to visitors in plain language; legal mapping: DPDP s.6 consent (from
+  // about May 2027), SPDI Rules 2011 Rule 5(1) consent for sensitive data (now).
+  APPOINTMENT: { ground: 'Your consent', required: true },
   // Legacy purposes, no longer collected; kept so older records still display.
-  APPOINTMENT_REMINDERS_SMS_WHATSAPP: { ground: 'Consent (no longer offered)', required: false, legacy: true },
-  MARKETING: { ground: 'Consent (no longer offered)', required: false, legacy: true },
-  FUNCTIONAL_COOKIES: { ground: 'Consent (s.6)', required: false },
-  ANALYTICS_COOKIES: { ground: 'Consent (s.6)', required: false }
+  APPOINTMENT_REMINDERS_SMS_WHATSAPP: { ground: 'Your consent (no longer offered)', required: false, legacy: true },
+  MARKETING: { ground: 'Your consent (no longer offered)', required: false, legacy: true },
+  FUNCTIONAL_COOKIES: { ground: 'Your consent', required: false },
+  ANALYTICS_COOKIES: { ground: 'Your consent', required: false }
 };
 
 // ---------------------------------------------------------------------------
@@ -232,7 +235,7 @@ const COOKIES = [
   {
     name: 'dpdp_aid',
     category: 'necessary',
-    purpose: 'Random ID that links your cookie choices to our consent log (proof of consent, s.6(10)). Set only after you make a choice.',
+    purpose: 'Random ID that links your cookie choices to our record of them, so we can show what you agreed to. Set only after you make a choice.',
     duration: '12 months',
     party: 'First-party'
   },

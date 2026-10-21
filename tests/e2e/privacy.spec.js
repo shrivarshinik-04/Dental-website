@@ -24,7 +24,7 @@ test('notice, policy and contact details are in the server HTML (readable withou
     expect(booking, text).toContain(text);
   }
   const policy = await (await request.get('/privacy-policy')).text();
-  for (const text of ['Which law applies', 'SPDI Rules', '13 May 2027', 'Not yet configured', 'CERT-In']) expect(policy, text).toContain(text);
+  for (const text of ['Laws that apply to us', 'Information Technology Act, 2000', 'May 2027', 'Not yet configured', 'CERT-In']) expect(policy, text).toContain(text);
   expect(policy).not.toMatch(/we (are|remain) (fully )?compliant/i);
   const ctx = await browser.newContext({ javaScriptEnabled: false });
   const page = await ctx.newPage();

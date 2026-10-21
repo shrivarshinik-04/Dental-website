@@ -79,7 +79,7 @@ test('erasure keeps visits marked as part of the clinical record and explains wh
   const res = await ctx.request.post('/api/rights/erase', { data: { confirm: true, language: 'en' }, headers: { Origin: baseURL } });
   const body = await res.json();
   expect(body.result.fullyErased).toBe(false);
-  expect(body.result.retained.legalBasis).toContain('SPDI Rules 2011, Rule 5(4)');
+  expect(body.result.retained.legalBasis).toContain('Medical record-keeping rules');
   expect(await db().appointment.count({ where: { dataPrincipalId: principal.id } })).toBe(1);
   await admin.close();
   await ctx.close();

@@ -1,11 +1,20 @@
 /**
- * Privacy policy.
- * In force now: IT Act 2000 s.43A and the IT (Reasonable Security Practices and Procedures
- * and Sensitive Personal Data or Information) Rules 2011 ("SPDI Rules"), Rules 3, 4
- * (published policy), 5 (consent, purpose, recipients, retention, review, withdrawal,
- * Grievance Officer) and 8 (security); CERT-In Directions of 28 April 2022.
- * Expected from about 13 May 2027 (G.S.R. 843(E); date to be confirmed): DPDP Act 2023
- * and DPDP Rules 2025. Described in a separate section and never presented as current.
+ * Privacy policy, in plain language with no section or rule numbers in the visible text
+ * (visitors see the law named by title only, in "Laws that apply to us").
+ *
+ * Legal mapping, for developers and reviewers (see docs/audit/02-legal-matrix.md):
+ * - In force now: IT Act 2000 s.43A; IT (Reasonable Security Practices and Procedures and
+ *   Sensitive Personal Data or Information) Rules 2011 ("SPDI Rules"): Rule 3 (sensitive data),
+ *   Rule 4 (published policy), Rule 5(1) consent, 5(3) recipients and collecting agency,
+ *   5(4) retention, 5(6) review/correction, 5(7) option not to provide / withdraw,
+ *   5(9) Grievance Officer within one month, Rule 6(1) proviso (disclosure to government
+ *   agencies), Rule 8 (security programme); CERT-In Directions 28 Apr 2022, direction (ii)
+ *   (report within 6 hours).
+ * - Expected from about 13 May 2027 (G.S.R. 843(E); date to be confirmed): DPDP Act 2023
+ *   s.6 consent, s.6(10) proof, s.7(a)/(d)/(e) legitimate uses, s.8(7) retention required by
+ *   law, s.9 children (Rule 12 + Fourth Schedule Part A item 1 exemption under review),
+ *   ss.11–14 rights, s.13(3) Board complaint, s.15 duties; DPDP Rules 7 (breach), 8(3)
+ *   (one-year record retention), 14(3) (grievance period of at most 90 days).
  * Organisation details come from src/config/compliance.js and are samples.
  */
 import { Fragment } from 'react';
@@ -63,7 +72,7 @@ const years = (days) => Math.round(days / 365);
 
 const CONTENTS = [
   ['who', 'Who we are'],
-  ['law', 'Which law applies'],
+  ['law', 'Laws that apply to us'],
   ['collect', 'What we collect'],
   ['purposes', 'Why we use it'],
   ['recipients', 'Who receives it'],
@@ -71,7 +80,7 @@ const CONTENTS = [
   ['retention', 'How long we keep it'],
   ['children', 'Children'],
   ['choices', 'Your choices now'],
-  ['dpdp', 'From about May 2027: DPDP Act 2023'],
+  ['changes-2027', 'What changes in 2027'],
   ['location', 'Where your data is stored'],
   ['incidents', 'Security incidents'],
   ['changes', 'Changes to this policy'],
@@ -110,42 +119,38 @@ const PrivacyPolicy = () => (
               </ol>
             </nav>
 
-            <Section id="who" title="1. Who we are">
+            <Section id="who" title="Who we are">
               <p className="mb-0">
                 {CLINIC.legalName} (trading as {CLINIC.tradeName}), {CLINIC.address}, operates this website and decides
-                how the personal information collected on it is used. Our Grievance Officer is {GRIEVANCE_OFFICER.name};
-                contact details are in section 14.
+                how the personal information collected on it is used. Our Grievance Officer is {GRIEVANCE_OFFICER.name}.
+                You will find their contact details under <a href="#contact">Contact</a>.
               </p>
             </Section>
 
-            <Section id="law" title="2. Which law applies">
-              <p>
-                Today, the <strong>Information Technology Act, 2000</strong> (section 43A) and the{' '}
+            <Section id="law" title="Laws that apply to us">
+              <p className="mb-0">
+                Today, the <strong>Information Technology Act, 2000</strong> and the{' '}
                 <strong>
                   Information Technology (Reasonable Security Practices and Procedures and Sensitive Personal Data or
                   Information) Rules, 2011
                 </strong>{' '}
-                (the &quot;SPDI Rules&quot;) govern how we handle your information. Under the SPDI Rules, information
-                about your physical health condition and medical records or history is{' '}
-                <strong>sensitive personal data</strong>. We also follow the CERT-In Directions of 28 April 2022 on
-                reporting cyber security incidents.
-              </p>
-              <p className="mb-0">
-                The <strong>Digital Personal Data Protection Act, 2023</strong> and the{' '}
-                <strong>Digital Personal Data Protection Rules, 2025</strong> are being brought into force in stages.
-                Their main obligations and rights are expected to apply from about <strong>13 May 2027</strong> (date to
-                be confirmed). Section 10 explains what will change. Nothing in this policy limits any right you have
-                under the law.
+                govern how we handle your information, and we follow the <strong>CERT-In</strong> directions on
+                reporting cyber security incidents. The <strong>Digital Personal Data Protection Act, 2023</strong> and
+                its rules are being brought in step by step: their main obligations and rights are expected to take
+                effect in May 2027 (the exact date is still to be confirmed). See{' '}
+                <a href="#changes-2027">What changes in 2027</a>. Nothing in this policy limits any right you have under
+                the law.
               </p>
             </Section>
 
-            <Section id="collect" title="3. What we collect">
+            <Section id="collect" title="What we collect">
               <h3 className="fs-18 merriweather text-title">Appointment request form</h3>
               <ul>
                 <li>Patient&apos;s name and mobile number; email address (optional)</li>
                 <li>
-                  The service you want and, optionally, a short reason for your visit. <strong>These are sensitive
-                  personal data</strong>: please do not enter detailed medical history; we ask in person.
+                  The service you want and, optionally, a short reason for your visit. This is health information,
+                  which the law treats as <strong>sensitive</strong>: please do not enter detailed medical history; we
+                  ask in person.
                 </li>
                 <li>Preferred date and time</li>
                 <li>If the patient is under 18: the parent or guardian&apos;s name and relationship, and their declaration</li>
@@ -172,39 +177,39 @@ const PrivacyPolicy = () => (
               </ul>
             </Section>
 
-            <Section id="purposes" title="4. Why we use it">
+            <Section id="purposes" title="Why we use it">
               <Table
-                head={['Purpose', 'Information used', 'Basis today', 'From about May 2027 (to be confirmed)']}
+                head={['Purpose', 'Information used', 'Why we are allowed to', 'From 2027 (to be confirmed)']}
                 rows={[
                   [
                     'Booking and managing your appointment',
                     'Name, mobile, email (optional), service, date and time, reason (optional), guardian details',
-                    'Your consent before we collect sensitive personal data (SPDI Rule 5(1))',
-                    'Consent (DPDP s.6); scheduling may instead rely on a legitimate use under s.7(a) (under legal review)'
+                    'Your consent, which we ask for before collecting health information',
+                    'Your consent; scheduling may instead be treated as information you chose to give us for this purpose (under legal review)'
                   ],
                   [
                     'Proving what you agreed to and handling your requests and complaints',
                     'Consent records, reference ID, requests, complaints',
-                    'Our duty to handle grievances (SPDI Rule 5(9)) and keep reasonable security records (SPDI Rule 8)',
-                    'DPDP s.6(10) (proof of consent), s.8 and s.13'
+                    'We must handle complaints and keep reasonable security records',
+                    'The same, plus keeping proof of consent'
                   ],
                   [
                     'Remembering your language (optional cookie)',
                     'Language preference',
                     'Your choice in the cookie settings',
-                    'Consent (DPDP s.6)'
+                    'Your consent'
                   ],
                   [
                     'Counting page visits to improve the site (optional analytics)',
                     'Visitor ID, pages, time, referring domain',
                     'Your choice in the cookie settings; withdrawing erases the data',
-                    'Consent (DPDP s.6)'
+                    'Your consent'
                   ],
                   [
                     'Meeting legal obligations',
                     'Clinical records and anything a law or court order requires',
-                    'Disclosure to government agencies where the law requires (SPDI Rule 6(1) proviso)',
-                    'DPDP s.7(d), s.7(e); retention required by law (s.8(7))'
+                    'Disclosure to government agencies where the law requires it',
+                    'Where a law or a court order requires it'
                   ]
                 ]}
               />
@@ -214,7 +219,7 @@ const PrivacyPolicy = () => (
               </p>
             </Section>
 
-            <Section id="recipients" title="5. Who receives it">
+            <Section id="recipients" title="Who receives it">
               <p>
                 Only our clinic staff, and only what their role needs: front-desk staff see appointments; the Grievance
                 Officer and clinic administrators see requests and complaints. We do not share your information with
@@ -236,7 +241,7 @@ const PrivacyPolicy = () => (
               </p>
             </Section>
 
-            <Section id="security" title="6. How we protect it">
+            <Section id="security" title="How we protect it">
               <p>Measures in place on this website:</p>
               <ul>
                 <li>Names, contact details, the service, the reason for visit, guardian details, nominee details and complaints are encrypted in the database (AES-256-GCM).</li>
@@ -248,14 +253,14 @@ const PrivacyPolicy = () => (
               </ul>
               <p className="mb-0">
                 Not yet in place in this test environment: HTTPS-only hosting, database backups, and a documented
-                information security programme audited against a standard such as IS/ISO/IEC 27001 (SPDI Rule 8).
+                information security programme audited against a recognised standard such as ISO/IEC 27001.
               </p>
             </Section>
 
-            <Section id="retention" title="7. How long we keep it">
+            <Section id="retention" title="How long we keep it">
               <p>
-                We keep information only as long as needed for the purpose or as required by another law (SPDI Rule
-                5(4)). Current settings, applied by a scheduled clean-up job:
+                We keep information only as long as we need it for the purpose, or as long as another law requires.
+                Current settings, applied by a scheduled clean-up job:
               </p>
               <ul>
                 <li>
@@ -272,56 +277,58 @@ const PrivacyPolicy = () => (
                 <li>Requests and complaints: {years(RETENTION.requestRecordDays)} years after they are closed.</li>
               </ul>
               <p className="mb-0">
-                These periods are under review: from about May 2027 the DPDP Rules (Rule 8(3)) are expected to require
-                keeping processing records for at least one year.
+                These periods are under review: from 2027 the new data protection rules are expected to require keeping
+                records of processing for at least one year.
               </p>
             </Section>
 
-            <Section id="children" title="8. Children">
+            <Section id="children" title="Children">
               <p className="mb-0">
                 If the patient is under 18, a parent or lawful guardian must fill in the form, declare that they are an
                 adult and the child&apos;s parent or guardian, and give consent for the child. We collect only what the
-                appointment needs and never run analytics during a booking for a child. From about May 2027, section 9
-                of the DPDP Act will add specific rules for children&apos;s data; whether the exemption for clinical
-                establishments in the DPDP Rules (Fourth Schedule, Part A) applies to us is under legal review.
+                appointment needs and never run analytics during a booking for a child. From 2027 the new law adds
+                specific rules for children&apos;s data; whether its exemption for clinics providing health care to
+                children applies to us is under legal review.
               </p>
             </Section>
 
-            <Section id="choices" title="9. Your choices now">
+            <Section id="choices" title="Your choices now">
               <ul>
-                <li><strong>Say no:</strong> you can choose not to give information; we may then be unable to book an appointment (SPDI Rule 5(7)).</li>
-                <li><strong>Review and correct:</strong> see and correct the information you gave us (SPDI Rule 5(6)).</li>
-                <li><strong>Withdraw consent:</strong> at any time, as easily as you gave it (SPDI Rule 5(7)).</li>
+                <li><strong>Say no:</strong> you can choose not to give information; we may then be unable to book an appointment.</li>
+                <li><strong>Review and correct:</strong> see and correct the information you gave us.</li>
+                <li><strong>Withdraw consent:</strong> at any time, as easily as you gave it.</li>
                 <li><strong>Ask for deletion</strong> of information we do not have to keep.</li>
-                <li><strong>Complain</strong> to our Grievance Officer, who resolves grievances within one month (SPDI Rule 5(9)).</li>
+                <li><strong>Complain</strong> to our Grievance Officer, who resolves grievances within one month.</li>
               </ul>
               <p className="mb-0">
                 <strong>How:</strong> on <Link href="/data-rights">Your Data Rights</Link>, enter the reference ID you got
                 when you booked and your registered mobile number or email, then the one-time code. Complaints:{' '}
-                <Link href="/grievance">Raise a Grievance</Link> or contact the Grievance Officer directly (section 14).
+                <Link href="/grievance">Raise a Grievance</Link> or contact the Grievance Officer directly (see{' '}
+                <a href="#contact">Contact</a>).
               </p>
             </Section>
 
-            <Section id="dpdp" title="10. From about May 2027: DPDP Act 2023">
+            <Section id="changes-2027" title="What changes in 2027">
               <p>
-                When the DPDP Act&apos;s main provisions apply (expected from about 13 May 2027, date to be confirmed),
-                you will also have these rights, which the Data Rights page already supports:
+                When the Digital Personal Data Protection Act&apos;s main provisions take effect (expected in May 2027,
+                date to be confirmed), you will also have these rights, which the Data Rights page already supports:
               </p>
               <ul>
-                <li>a summary of your data, how it is used and who it was shared with (s.11);</li>
-                <li>correction, completion, updating and erasure (s.12);</li>
-                <li>grievance redressal within a published period of no more than 90 days (s.13; Rule 14(3));</li>
-                <li>nominating someone to act for you on death or incapacity (s.14);</li>
+                <li>a summary of your data, how it is used and who it was shared with;</li>
+                <li>correction, completion, updating and erasure;</li>
+                <li>an answer to your complaint within a published period of no more than 90 days;</li>
+                <li>nominating someone to act for you if you die or can no longer act yourself;</li>
                 <li>
-                  complaining to the <BoardLink /> after using our grievance process (s.13(3)).
+                  complaining to the <BoardLink /> after using our grievance process.
                 </li>
               </ul>
               <p className="mb-0">
-                You will also have duties under section 15, for example not to file false or frivolous complaints.
+                You will also have duties, for example not to file false or frivolous complaints and to give accurate
+                information.
               </p>
             </Section>
 
-            <Section id="location" title="11. Where your data is stored">
+            <Section id="location" title="Where your data is stored">
               <p className="mb-0">
                 Hosting provider: {HOSTING.provider}; location: {HOSTING.location}.{' '}
                 {HOSTING.crossBorder
@@ -330,16 +337,16 @@ const PrivacyPolicy = () => (
               </p>
             </Section>
 
-            <Section id="incidents" title="12. Security incidents">
+            <Section id="incidents" title="Security incidents">
               <p className="mb-0">
                 If we notice a cyber security incident such as unauthorised access to or a leak of personal
-                information, we report it to CERT-In within six hours of noticing it, as the CERT-In Directions of 28
-                April 2022 require. From about May 2027 we will also inform the people affected and the Data
-                Protection Board as the DPDP Rules (Rule 7) require.
+                information, we report it to CERT-In, India&apos;s national cyber security agency, within six hours of
+                noticing it. From 2027 we will also inform the people affected and the Data Protection Board without
+                delay.
               </p>
             </Section>
 
-            <Section id="changes" title="13. Changes to this policy">
+            <Section id="changes" title="Changes to this policy">
               <p>
                 Current version: <strong>{NOTICE_VERSION}</strong>, effective {NOTICE_EFFECTIVE_FROM}. The notice shown
                 with each form is available in: {LANGUAGES.map((l) => l.label).join(', ')}. This policy is in English.
@@ -347,7 +354,7 @@ const PrivacyPolicy = () => (
               <Table head={['Version', 'Date', 'Change']} rows={POLICY_CHANGELOG.map((e) => [e.version, e.date, e.change])} />
             </Section>
 
-            <Section id="contact" title="14. Contact">
+            <Section id="contact" title="Contact">
               <div className="border rounded p-4 bg-grays">
                 <ContactBlock />
               </div>

@@ -203,8 +203,11 @@ export const erasePrincipal = async (tx, principal, { noticeVersionId, language,
           fields: ['name', 'phone', 'appointment date', 'service', 'reason for visit'],
           reason:
             'These visits are part of your clinical record, which we must keep by law for the period required by medical record-keeping rules.',
+          // Shown to the person in plain language. Legal mapping: SPDI Rules 2011, Rule 5(4)
+          // (now); DPDP Act 2023 s.8(7) "unless retention is necessary for compliance with any
+          // law" (from about May 2027).
           legalBasis:
-            'SPDI Rules 2011, Rule 5(4): information may be kept as long as required under any other law in force. Clinical records must be kept under the medical record-keeping rules that apply to the clinic (period to be confirmed). From about May 2027: DPDP Act 2023, s.8(7) (erasure "unless retention is necessary for compliance with any law").',
+            'The law lets us keep information for as long as another law requires. Medical record-keeping rules require clinics to keep clinical records for a set period (to be confirmed), after which we delete them.',
           retainUntilApprox: `${RETENTION.clinicalRecordDays} days after the visit`
         }
       : null,

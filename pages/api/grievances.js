@@ -20,9 +20,10 @@ import { allowMethods, hashedIp, rateLimit, requireSameOrigin, withErrors } from
 
 const escalationNote = (dueDate) =>
   `If you are not satisfied with our response, or do not receive one by ${dueDate.toISOString().slice(0, 10)}, ` +
-  'please contact the Grievance Officer again. From about 13 May 2027 (date to be confirmed), section 13(3) of the ' +
-  `Digital Personal Data Protection Act, 2023 is expected to let you complain to the ${DATA_PROTECTION_BOARD.name} ` +
+  'please contact the Grievance Officer again. From 2027 (exact date to be confirmed), the new data protection law ' +
+  `is expected to let you complain to the ${DATA_PROTECTION_BOARD.name} ` +
   `(${DATA_PROTECTION_BOARD.url || DATA_PROTECTION_BOARD.urlPendingText}) after using this grievance process.`;
+// Legal mapping (not shown to the person): DPDP Act 2023 s.13(3), from about May 2027.
 
 export default withErrors(async (req, res) => {
   if (!allowMethods(req, res, ['POST']) || !requireSameOrigin(req, res)) return;

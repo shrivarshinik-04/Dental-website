@@ -20,7 +20,7 @@
   },
   "notice": {
     "title": "Privacy notice",
-    "intro": "{clinic} ({legalName}) collects the information below to handle your appointment request. Please read this notice before you agree. The service you choose and any reason for your visit are sensitive personal data under the Information Technology (SPDI) Rules, 2011, so we ask for your consent first. You only need to tick the box if you agree.",
+    "intro": "{clinic} ({legalName}) collects the information below to handle your appointment request. Please read this notice before you agree. The service you choose and any reason for your visit are health information, which the law treats as sensitive, so we ask for your consent first. You only need to tick the box if you agree.",
     "dataHeading": "Personal data we collect here",
     "data": {
       "name": "Name of the patient",
@@ -56,7 +56,7 @@
     "withdraw": "You can withdraw your consent at any time, as easily as you gave it: use \"Cookie settings\" at the bottom of any page, or one click on the Data Rights page with your reference ID. We then stop using the data for that purpose; this does not undo what was done before.",
     "rights": "You can review and correct your information, and ask us to delete what we are not required to keep, on the Data Rights page.",
     "grievance": "If you have a complaint, contact our Grievance Officer or use the Grievance page. We resolve grievances within one month.",
-    "board": "From about 13 May 2027 (date to be confirmed), the Digital Personal Data Protection Act, 2023 is expected to add further rights, including complaining to the {board} after using our grievance process.",
+    "board": "From 2027 (exact date to be confirmed), a new data protection law is expected to add further rights, including complaining to the {board} after using our grievance process.",
     "contactHeading": "Who to contact",
     "links": {
       "rights": "Data Rights page",
@@ -228,7 +228,7 @@
     "successTitle": "Grievance received",
     "referenceNumber": "Reference number",
     "dueDate": "We will reply by",
-    "board": "If you are not satisfied with our reply, you can contact the Grievance Officer again. From about 13 May 2027 (date to be confirmed), the Digital Personal Data Protection Act, 2023 is expected to also let you complain to the {board} after using this process.",
+    "board": "If you are not satisfied with our reply, you can contact the Grievance Officer again. From 2027 (exact date to be confirmed), a new data protection law is expected to also let you complain to the {board} after using this process.",
     "duty": "Please make sure the information you give is accurate. Please do not file a false or frivolous complaint."
   }
 }
