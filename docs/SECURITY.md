@@ -44,7 +44,23 @@ describes controls; it does not claim that they are sufficient for any law. Orga
 See `docs/BREACH-RESPONSE.md` (CERT-In report within 6 hours of noticing, now; DPDP Rule 7 notices from about May
 2027).
 
-## Dependency status
+## Dependency status (checked 21 Oct 2026)
 
-`npm audit` findings and their applicability are tracked in `docs/audit/05-bugs.md` (B-30). Next.js is patched
-within the 14.2 line; advisories fixed only in Next 15 / Prisma 7 are documented with their applicability.
+`next` is at **14.2.35**, the latest 14.2 release. `npm audit --omit=dev` still lists advisories that are fixed only
+in Next 15.5.x or Prisma 7 (major upgrades, not made: REQUIREMENTS §2 asks not to replace the framework). Their
+applicability to this site:
+
+| Advisory group (npm audit) | Applies? | Reason / evidence |
+|---|---|---|
+| Image Optimization API: AVIF RCE (critical), DoS, remotePatterns DoS, disk-cache growth | No | `images.unoptimized: true`; `/_next/image` returns 404 on the production build |
+| RCE on Windows-hosted servers (critical) | No | Hosting target is Linux |
+| React Server Components / App Router / Server Actions / Server Function endpoints (DoS, deserialization, cache poisoning, CSP-nonce XSS, SSRF on custom servers, Edge payload) | No | Pages Router only; no App Router, Server Actions or custom server |
+| Rewrites: request smuggling, SSRF via destination host | No | No `rewrites` in `next.config.js` |
+| Middleware bypass in Pages Router with i18n; middleware redirect cache poisoning | No | No `i18n` config; middleware issues no redirects |
+| XSS in `beforeInteractive` scripts | No | `next/script` not used |
+| SSRF with WebSocket upgrades | No | No WebSocket upgrade handling |
+| Cache confusion of response bodies for requests with bodies | **Uncertain** | Advisory text targets Next's response caching; API routes here send `Cache-Control: no-store`. Re-assess when upgrading |
+| `postcss` (bundled in Next) | No | Only our own CSS is processed at build time |
+| `prisma` / `@prisma/config` / `deepmerge-ts` | Low | Affects loading Prisma's own config objects in the CLI; no untrusted input |
+
+Recommendation: plan an upgrade to Next 15.5.x as a separate, tested change before any production use.
