@@ -21,6 +21,7 @@ const COLUMNS = [
   ['notice_content_sha256', (r) => r.noticeVersion.contentHash],
   ['language', (r) => r.language],
   ['given_by_guardian', (r) => (r.givenByGuardian ? 'yes' : 'no')],
+  ['guardian_booking_id', (r) => r.appointmentId || ''],
   ['ip_hash', (r) => r.ipHash || ''],
   ['user_agent', (r) => r.userAgent || '']
 ];

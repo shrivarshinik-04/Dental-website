@@ -102,6 +102,9 @@ model ConsentRecord {
   language         String
   channel          ConsentChannel
   givenByGuardian  Boolean         @default(false)
+  // Booking whose guardian gave this consent (guardian details live on the Appointment).
+  appointmentId    String?
+  appointment      Appointment?    @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
   ipHash           String? // HMAC-SHA-256(IP_HASH_SALT, ip). Raw IP is never stored.
   userAgent        String?
   timestamp        DateTime        @default(now())
@@ -140,9 +143,14 @@ model Appointment {
   service              String // encrypted (reveals dental condition)
   notes                String? // encrypted (reason for visit)
   patientIsMinor       Boolean           @default(false)
+  // Parent or guardian of a patient under 18 (all encrypted). Their mobile/email is used
+  // for confirmations and rights-portal one-time codes instead of the patient's.
   guardianName         String? // encrypted
-  guardianRelationship String? // encrypted
+  guardianRelationship String? // encrypted (PARENT / LEGAL_GUARDIAN; older rows MOTHER / FATHER)
+  guardianPhone        String? // encrypted
+  guardianEmail        String? // encrypted
   status               AppointmentStatus @default(REQUESTED)
+  consents             ConsentRecord[]
   // Set by clinic staff once the visit forms part of the clinical record that
   // must be retained by law. Blocks erasure (s.8(7) "unless retention is necessary
   // for compliance with any law"). See RETENTION.clinicalRecordDays.

@@ -17,6 +17,7 @@ import prisma from 'lib/db';
 import { auditMany } from 'lib/audit';
 import { decrypt, encrypt, randomReference } from 'lib/crypto';
 import { readSession } from 'lib/rightsSession';
+import { contactsFor } from 'lib/rights';
 import { ensureNoticeVersion } from 'lib/noticeContent';
 import { appointmentSchema, fieldErrors } from 'lib/validation';
 import { allowMethods, hashedIp, rateLimit, requireSameOrigin, userAgent, withErrors } from 'lib/http';
@@ -33,10 +34,12 @@ const same = (a, b) => Boolean(a && b) && a.trim().toLowerCase() === b.trim().to
 const verifiedMatch = async (req, data) => {
   const session = readSession(req);
   if (!session) return null;
-  const principal = await prisma.dataPrincipal.findUnique({ where: { id: session.dataPrincipalId } });
+  const principal = await prisma.dataPrincipal.findUnique({ where: { id: session.dataPrincipalId }, include: { appointments: true } });
   if (!principal || principal.erasedAt) return null;
   const nameMatches = same(decrypt(principal.name), data.name);
-  const contactMatches = same(decrypt(principal.phone), data.phone) || same(decrypt(principal.email), data.email);
+  // Adults match on their own contact; a child's booking matches on the guardian's contact.
+  const offered = data.isMinor ? [data.guardianPhone, data.guardianEmail] : [data.phone, data.email];
+  const contactMatches = contactsFor(principal).some((c) => offered.some((v) => same(c.value, v)));
   return nameMatches && contactMatches ? principal : null;
 };
 
@@ -81,6 +84,7 @@ export default withErrors(async (req, res) => {
           data: {
             referenceId: await uniqueReference(tx),
             name: encrypt(data.name),
+            // For a patient under 18 these are null: the guardian's contact is stored on the booking.
             phone: encrypt(data.phone),
             email: encrypt(data.email)
           }
@@ -94,8 +98,11 @@ export default withErrors(async (req, res) => {
         service: encrypt(data.service),
         notes: encrypt(data.reason),
         patientIsMinor: isMinor,
-        guardianName: isMinor ? encrypt(data.guardianName) : null,
-        guardianRelationship: isMinor ? encrypt(data.guardianRelationship) : null
+        // Already null for adults (discarded by the schema), encrypted for minors.
+        guardianName: encrypt(data.guardianName),
+        guardianRelationship: encrypt(data.guardianRelationship),
+        guardianPhone: encrypt(data.guardianPhone),
+        guardianEmail: encrypt(data.guardianEmail)
       }
     });
 
@@ -111,6 +118,8 @@ export default withErrors(async (req, res) => {
         language: data.language,
         channel: 'APPOINTMENT_FORM',
         givenByGuardian: isMinor,
+        // Links the consent to the booking that holds the guardian's details.
+        appointmentId: isMinor ? appointment.id : null,
         ipHash,
         userAgent: ua
       }))

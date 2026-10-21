@@ -9,10 +9,10 @@ import crypto from 'crypto';
 import { OTP } from 'config/compliance';
 import prisma from 'lib/db';
 import { audit } from 'lib/audit';
-import { decrypt, keyedHash, safeEqual } from 'lib/crypto';
+import { keyedHash, safeEqual } from 'lib/crypto';
 import { DeliveryUnavailableError, otpDelivery, sendOtp } from 'lib/notify';
 import { requestOtpSchema } from 'lib/validation';
-import { withContact } from 'lib/rights';
+import { contactsFor, withContact } from 'lib/rights';
 import { allowMethods, hashedIp, rateLimit, requireSameOrigin, withErrors } from 'lib/http';
 
 const MAX_CODES_PER_WINDOW = 3;
@@ -32,12 +32,15 @@ export default withErrors(async (req, res) => {
   if (!parsed.success) return res.status(400).json(withContact({ error: 'Enter your reference ID and a valid mobile number or email.' }));
 
   const { referenceId, contact } = parsed.data;
-  const principal = await prisma.dataPrincipal.findUnique({ where: { referenceId } });
+  const principal = await prisma.dataPrincipal.findUnique({ where: { referenceId }, include: { appointments: true } });
   let demoCode;
 
   if (principal && !principal.erasedAt) {
-    const stored = decrypt(contact.channel === 'phone' ? principal.phone : principal.email);
-    if (stored && safeEqual(stored.toLowerCase(), contact.value.toLowerCase())) {
+    // The person's own contact, or for a patient under 18 the parent or guardian's.
+    const matches = contactsFor(principal).some(
+      (c) => c.channel === contact.channel && safeEqual(c.value.toLowerCase(), contact.value.toLowerCase())
+    );
+    if (matches) {
       const recent = await prisma.otpChallenge.count({
         where: { dataPrincipalId: principal.id, createdAt: { gt: new Date(Date.now() - 15 * 60 * 1000) } }
       });

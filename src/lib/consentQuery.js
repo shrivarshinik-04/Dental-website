@@ -37,6 +37,7 @@ export const consentSelect = {
   channel: true,
   language: true,
   givenByGuardian: true,
+  appointmentId: true,
   anonymousId: true,
   ipHash: true,
   userAgent: true,

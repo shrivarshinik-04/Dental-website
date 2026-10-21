@@ -57,20 +57,33 @@ export const contact = z
   });
 
 export const SLOTS = ['MORNING', 'EVENING'];
-export const RELATIONSHIPS = ['MOTHER', 'FATHER', 'LEGAL_GUARDIAN'];
+// Relationship of the person booking for a patient under 18.
+export const RELATIONSHIPS = ['PARENT', 'LEGAL_GUARDIAN'];
 
+const looseText = (max) => z.string().max(max * 2).optional().default('');
+
+/**
+ * Booking. Adults give their own mobile (email optional). For a patient under 18 the parent
+ * or guardian gives their name, relationship, mobile (email optional) and the declaration;
+ * the patient's own phone and email are not collected. Fields that do not apply are
+ * discarded, so crafted extra data is never stored.
+ * Legal mapping (comments only): SPDI Rules 2011 Rule 5(2) collection limited to what is
+ * necessary; DPDP Act s.9 / Rule 10, Rule 12 + Fourth Schedule Part A (from about May 2027).
+ */
 export const appointmentSchema = z
   .object({
     name: requiredText(100),
-    phone,
-    email: optionalEmail,
+    phone: looseText(20),
+    email: looseText(254),
     service: requiredText(100),
     preferredDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
     preferredSlot: z.enum(SLOTS),
     reason: text(300, { multiline: true }).optional().default(''),
     isMinor: z.boolean(),
-    guardianName: text(100).optional().default(''),
-    guardianRelationship: z.enum(RELATIONSHIPS).optional().nullable(),
+    guardianName: looseText(100),
+    guardianRelationship: z.string().max(40).optional().nullable(),
+    guardianPhone: looseText(20),
+    guardianEmail: looseText(254),
     guardianDeclaration: z.boolean().optional().default(false),
     consents: z.object({ APPOINTMENT: z.literal(true) }).strict(),
     language,
@@ -78,11 +91,32 @@ export const appointmentSchema = z
   })
   .strict()
   .superRefine((data, ctx) => {
-    if (!data.isMinor) return;
-    if (!data.guardianName) ctx.addIssue({ code: 'custom', path: ['guardianName'], message: 'Required' });
-    if (!data.guardianRelationship) ctx.addIssue({ code: 'custom', path: ['guardianRelationship'], message: 'Required' });
-    if (data.guardianDeclaration !== true)
-      ctx.addIssue({ code: 'custom', path: ['guardianDeclaration'], message: 'Required' });
+    const issue = (field) => ctx.addIssue({ code: 'custom', path: [field], message: 'Invalid or missing' });
+    if (!data.isMinor) {
+      if (!phone.safeParse(data.phone).success) issue('phone');
+      if (data.email && !optionalEmail.safeParse(data.email).success) issue('email');
+      return;
+    }
+    if (!requiredText(100).safeParse(data.guardianName).success) issue('guardianName');
+    if (!RELATIONSHIPS.includes(data.guardianRelationship)) issue('guardianRelationship');
+    if (!phone.safeParse(data.guardianPhone).success) issue('guardianPhone');
+    if (data.guardianEmail && !optionalEmail.safeParse(data.guardianEmail).success) issue('guardianEmail');
+    if (data.guardianDeclaration !== true) issue('guardianDeclaration');
+  })
+  .transform((data) => {
+    const adult = !data.isMinor;
+    return {
+      ...data,
+      // Adults: their own contact; guardian fields discarded.
+      phone: adult ? phone.parse(data.phone) : null,
+      email: adult ? optionalEmail.parse(data.email) : null,
+      // Minors: guardian contact; patient's own contact discarded.
+      guardianName: adult ? null : requiredText(100).parse(data.guardianName),
+      guardianRelationship: adult ? null : data.guardianRelationship,
+      guardianPhone: adult ? null : phone.parse(data.guardianPhone),
+      guardianEmail: adult ? null : optionalEmail.parse(data.guardianEmail),
+      guardianDeclaration: adult ? false : true
+    };
   });
 
 export const cookieConsentSchema = z
@@ -101,7 +135,11 @@ export const correctionSchema = z
     type: z.enum(['CORRECTION', 'COMPLETION', 'UPDATE']),
     name: requiredText(100).optional(),
     phone: phone.optional(),
-    email: optionalEmail.optional()
+    email: optionalEmail.optional(),
+    // Parent or guardian details on the person's bookings for a patient under 18.
+    guardianName: requiredText(100).optional(),
+    guardianPhone: phone.optional(),
+    guardianEmail: optionalEmail.optional()
   })
   .strict();
 

@@ -49,6 +49,29 @@ export const loadPrincipal = async (id, client = prisma) => {
   return { ...principal, nominations: nominee ? [nominee] : [] };
 };
 
+/**
+ * Contact details that can receive confirmations and one-time codes for a person: their own
+ * mobile/email and, for bookings of a patient under 18, the parent or guardian's.
+ * @param principal DataPrincipal with `appointments` loaded
+ * @returns {{ channel: 'phone' | 'email', value: string, role: 'patient' | 'guardian' }[]}
+ */
+export const contactsFor = (principal) => {
+  const list = [];
+  const add = (channel, encrypted, role) => {
+    const value = decrypt(encrypted);
+    if (value) list.push({ channel, value, role });
+  };
+  add('phone', principal.phone, 'patient');
+  add('email', principal.email, 'patient');
+  (principal.appointments || [])
+    .filter((a) => a.patientIsMinor)
+    .forEach((a) => {
+      add('phone', a.guardianPhone, 'guardian');
+      add('email', a.guardianEmail, 'guardian');
+    });
+  return list;
+};
+
 /** Latest event per purpose from the append-only ledger. */
 export const currentConsents = (consents) => {
   const latest = {};
@@ -79,6 +102,8 @@ export const buildSummary = (principal) => {
       patientIsMinor: a.patientIsMinor,
       guardianName: decrypt(a.guardianName),
       guardianRelationship: decrypt(a.guardianRelationship),
+      guardianPhone: decrypt(a.guardianPhone),
+      guardianEmail: decrypt(a.guardianEmail),
       status: a.status,
       legallyRequired: a.legallyRequired
     })),
@@ -200,7 +225,7 @@ export const erasePrincipal = async (tx, principal, { noticeVersionId, language,
     retained: retained.length
       ? {
           appointments: retained.length,
-          fields: ['name', 'phone', 'appointment date', 'service', 'reason for visit'],
+          fields: ['name', 'phone', 'appointment date', 'service', 'reason for visit', 'parent or guardian details (for a patient under 18)'],
           reason:
             'These visits are part of your clinical record, which we must keep by law for the period required by medical record-keeping rules.',
           // Shown to the person in plain language. Legal mapping: SPDI Rules 2011, Rule 5(4)
