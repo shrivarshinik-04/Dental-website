@@ -8,7 +8,7 @@ import { adminProps } from 'lib/adminData';
 import { ROLES } from 'lib/adminAuth';
 import AdminLayout from 'components/AdminLayout';
 
-const AdminHome = ({ admin, permissions, denied, stats }) => (
+const AdminHome = ({ admin, permissions, denied, stats = [] }) => (
   <AdminLayout title="Overview" admin={admin} permissions={permissions} denied={denied}>
     <div className="row g-4">
       {stats.map(({ label, value, overdue, href }) => (

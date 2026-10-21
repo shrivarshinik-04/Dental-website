@@ -17,15 +17,15 @@ import LanguageSwitcher from 'components/LanguageSwitcher';
  * @param {string[]} dataKeys    keys of notice.data to list
  * @param {string[]} purposeKeys keys of notice.purposes to list
  */
-const ConsentNotice = ({ dataKeys, purposeKeys, headingLevel = 2, showSwitcher = true, className = '' }) => {
+const ConsentNotice = ({ dataKeys, purposeKeys, headingLevel = 2, showSwitcher = true, className = '', idPrefix = 'consent-notice' }) => {
   const { t } = useT();
   const Heading = `h${headingLevel}`;
   const SubHeading = `h${headingLevel + 1}`;
 
   return (
-    <section className={`border rounded p-4 bg-white lato ${className}`} aria-labelledby="consent-notice-title">
+    <section className={`border rounded p-4 bg-white lato ${className}`} aria-labelledby={`${idPrefix}-title`}>
       <div className="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
-        <Heading id="consent-notice-title" className="fs-22 merriweather text-title mb-0">
+        <Heading id={`${idPrefix}-title`} className="fs-22 merriweather text-title mb-0">
           {t('notice.title')}
         </Heading>
         {showSwitcher && <LanguageSwitcher />}

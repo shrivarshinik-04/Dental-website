@@ -98,6 +98,7 @@ const CookieConsent = () => {
             <details className="mb-3 fs-15">
               <summary className="text-title">{t('notice.title')}</summary>
               <ConsentNotice
+                idPrefix="cookie-notice"
                 className="mt-2"
                 headingLevel={3}
                 showSwitcher={false}
