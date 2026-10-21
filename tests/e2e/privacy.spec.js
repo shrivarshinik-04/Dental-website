@@ -127,7 +127,7 @@ test('child safeguards: guardian required, no optional choices, analytics stoppe
   const ctx = await newContext(browser);
   const noGuardian = await bookViaApi(ctx.request, baseURL, { isMinor: true });
   expect(noGuardian.status).toBe(400);
-  expect(noGuardian.json.fields).toEqual(expect.arrayContaining(['guardianName', 'guardianRelationship', 'guardianDeclaration']));
+  expect(noGuardian.json.fields).toEqual(expect.arrayContaining(['guardianName', 'guardianRelationship', 'guardianPhone', 'guardianDeclaration']));
   const page = await ctx.newPage();
   await page.goto('/', { waitUntil: 'networkidle' });
   await page.getByRole('dialog').getByRole('button', { name: 'Accept all' }).click();

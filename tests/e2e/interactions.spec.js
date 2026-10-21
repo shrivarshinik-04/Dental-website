@@ -111,7 +111,7 @@ test('booking form: minor toggle shows and hides guardian fields; empty submit i
   await page.goto('/book-appointment', { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Request appointment' }).click();
   expect(posted).toBe(false);
-  await expect(page.locator('#field-name')).toBeFocused();
+  await expect(page.locator('#field-isMinor')).toBeFocused(); // the age question comes first
   await page.check('#field-isMinor');
   await expect(page.locator('#field-guardianName')).toBeVisible();
   await page.check('#field-isMinor-no');

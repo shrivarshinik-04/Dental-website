@@ -127,10 +127,11 @@ test('returning patient keeps one reference ID only after verification and only 
   expect([again.referenceId, again.json.reused]).toEqual([first.referenceId, true]);
   const child = await bookViaApi(ctx.request, baseURL, {
     name: 'Test Child Of Patient',
-    phone,
+    phone: '',
     isMinor: true,
     guardianName: 'Test Returning Patient',
-    guardianRelationship: 'MOTHER',
+    guardianRelationship: 'PARENT',
+    guardianPhone: phone,
     guardianDeclaration: true
   });
   expect(child.referenceId).not.toBe(first.referenceId); // different person, same phone

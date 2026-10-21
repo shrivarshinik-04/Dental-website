@@ -59,6 +59,8 @@ const bookingBody = (overrides = {}) => ({
   isMinor: false,
   guardianName: '',
   guardianRelationship: null,
+  guardianPhone: '',
+  guardianEmail: '',
   guardianDeclaration: false,
   consents: { APPOINTMENT: true },
   language: 'en',
