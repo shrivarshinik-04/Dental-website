@@ -315,7 +315,6 @@ const BookAppointment = () => {
                       <div className="form-check form-check-inline" key={String(value)}>
                         <input
                           className={`form-check-input${invalid('isMinor')}`}
-                          aria-invalid={errors.isMinor ? 'true' : undefined}
                           type="radio"
                           name="isMinor"
                           id={value ? 'field-isMinor' : 'field-isMinor-no'}

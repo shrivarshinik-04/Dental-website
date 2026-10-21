@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "lint": "next lint",
+    "lint": "eslint --ext .js,.jsx pages src scripts prisma middleware.js next.config.js",
     "build": "prisma generate && next build",
     "start": "next start",
     "sass": "sass --no-source-map src/assets/scss:public/css",
@@ -32,10 +32,15 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.35",
     "prisma": "^6.19.3",
     "sass": "^1.79.4"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }

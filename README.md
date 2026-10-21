@@ -111,15 +111,38 @@ npm run build     # Build for production</code></pre>
   <li>Audit, legal matrix, data inventory and plan: <code>docs/audit/</code>. Governing requirements: <code>docs/REQUIREMENTS.md</code>.</li>
 </ul>
 
+<h3>Install Node.js (version 20; 18 or newer works)</h3>
+<p>The repository pins Node 20 in <code>.nvmrc</code> and requires Node 18+ (<code>engines</code> in <code>package.json</code>). Pick one:</p>
+<pre><code># A. nvm (no root needed)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+nvm install && nvm use                     # reads .nvmrc
+
+# B. apt on Ubuntu/Debian/WSL (NodeSource)
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt-get install -y nodejs
+
+# C. Behind a corporate proxy (before A/B, and for npm)
+export HTTPS_PROXY=http://proxy.example.com:8080 HTTP_PROXY=$HTTPS_PROXY
+npm config set proxy "$HTTP_PROXY"
+npm config set https-proxy "$HTTPS_PROXY"
+export NODE_EXTRA_CA_CERTS=/path/to/corporate-root-ca.pem   # if the proxy inspects TLS
+# for apt: echo 'Acquire::https::Proxy "http://proxy.example.com:8080";' | sudo tee /etc/apt/apt.conf.d/95proxy
+</code></pre>
+<p>Optional: turn off the build tools' anonymous telemetry with <code>NEXT_TELEMETRY_DISABLED=1</code> and <code>CHECKPOINT_DISABLE=1</code>.</p>
+
 <h3>Setup</h3>
 <pre><code>npm install
 cp .env.example .env            # then fill in the values (see comments in the file)
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"   # ENCRYPTION_KEY
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"      # IP_HASH_SALT, SESSION_SECRET
 npm run admin:hash-password -- priya admin 'a-long-password'                  # add the output to ADMIN_USERS
+echo 'DEMO_MODE="true"' > .env.development.local   # dev only: show one-time codes on screen
 npx prisma migrate dev          # creates prisma/dev.db and seeds the first NoticeVersion
 npm run dev                     # http://localhost:3000, admin at /admin
+npm run lint                    # ESLint (next/core-web-vitals)
+npm run build                   # production build
 </code></pre>
+<p><code>.env.development.local</code> is read only by <code>next dev</code>, so production builds never pick up <code>DEMO_MODE</code> by accident.</p>
 <ul>
   <li><strong>Seed:</strong> <code>npx prisma db seed</code> (re-runnable) stores the notice text for each language as a <code>NoticeVersion</code>. It runs automatically after <code>migrate dev</code>.</li>
   <li><strong>One-time codes:</strong> no SMS or email provider is connected yet, so the Data Rights page and verified grievances need <code>DEMO_MODE=true</code> (see below). Without it the API answers "online verification is not available yet". Codes are never written to logs.</li>
