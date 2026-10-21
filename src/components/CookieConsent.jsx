@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { CATEGORIES, useConsent } from 'lib/consentStore';
 import { useT } from 'lib/i18n';
@@ -6,11 +6,13 @@ import ConsentNotice from 'components/ConsentNotice';
 import LanguageSwitcher from 'components/LanguageSwitcher';
 
 /**
- * Cookie consent banner, collection point B.
- * DPDP Act s.5 + s.6(1): notice together with the request, separate choice per purpose,
- * nothing pre-ticked, clear affirmative action; s.6(4): withdrawal as easy as giving
- * (re-opened from "Cookie settings" in the footer). No cookie wall: the page stays usable.
- * "Reject all" has the same size and style as "Accept all".
+ * Cookie banner for the two optional categories: functional (language) and analytics
+ * (the first-party page-view counter in /public/js/analytics.js). Notice shown with the
+ * request, one choice per category, nothing pre-ticked, "Reject all" as prominent as
+ * "Accept all", re-opened from "Cookie settings" in the footer; withdrawal deletes the
+ * cookies and the analytics data at once.
+ * Not a cookie wall: it sits below the mobile menu and the page reserves space for it, so
+ * every link and the footer stay usable.
  */
 const CookieConsent = () => {
   const { ready, bannerOpen, choices, record, minorSession, saveChoices, closeBanner } = useConsent();
@@ -19,6 +21,26 @@ const CookieConsent = () => {
   const [draft, setDraft] = useState(choices);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
+  const ref = useRef(null);
+
+  // Reserve space at the bottom of the page while the banner is open, so it never covers
+  // the footer (Cookie settings, contact details).
+  useEffect(() => {
+    if (!ready || !bannerOpen || !ref.current) return undefined;
+    // The theme gives <body> a fixed height, so pad the Next.js root, whose height follows
+    // the content.
+    const root = document.getElementById('__next') || document.body;
+    const update = () => {
+      root.style.paddingBottom = `${ref.current ? ref.current.offsetHeight : 0}px`;
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(ref.current);
+    return () => {
+      observer.disconnect();
+      root.style.paddingBottom = '';
+    };
+  }, [ready, bannerOpen]);
 
   // Opened from the footer after a choice was made: go straight to the detailed view.
   useEffect(() => {
@@ -35,8 +57,8 @@ const CookieConsent = () => {
     setSaving(true);
     setError('');
     try {
-      // A child's session never records consent to tracking (s.9(3)).
-      await saveChoices(minorSession ? { ...next, analytics: false, marketing: false } : next, language);
+      // A child's booking session never records consent to analytics.
+      await saveChoices(minorSession ? { ...next, analytics: false } : next, language);
     } catch {
       setError(t('common.error'));
     } finally {
@@ -49,15 +71,15 @@ const CookieConsent = () => {
 
   return (
     <div
-      className="position-fixed bottom-0 start-0 end-0 p-3"
-      style={{ zIndex: 1080 }}
+      ref={ref}
+      className="position-fixed bottom-0 start-0 end-0 p-2 p-md-3 cookie-banner"
       role="dialog"
       aria-modal="false"
       aria-labelledby="cookie-consent-title"
     >
       <div className="container">
-        <div className="card shadow-lg border lato" style={{ maxHeight: '85vh', overflowY: 'auto' }}>
-          <div className="card-body p-4">
+        <div className="card shadow-lg border lato cookie-banner-card">
+          <div className="card-body p-3 p-md-4">
             <div className="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
               <h2 id="cookie-consent-title" className="fs-22 merriweather text-title mb-0">
                 {t('cookie.title')}
@@ -79,8 +101,8 @@ const CookieConsent = () => {
                 className="mt-2"
                 headingLevel={3}
                 showSwitcher={false}
-                dataKeys={['cookieId', 'cookieChoices', 'consentProof']}
-                purposeKeys={['FUNCTIONAL_COOKIES', 'ANALYTICS_COOKIES', 'MARKETING_COOKIES']}
+                dataKeys={['cookieId', 'cookieChoices', 'consentProof', 'analyticsData']}
+                purposeKeys={['FUNCTIONAL_COOKIES', 'ANALYTICS_COOKIES']}
               />
             </details>
 
@@ -89,7 +111,7 @@ const CookieConsent = () => {
                 <legend className="visually-hidden">{t('cookie.customise')}</legend>
                 <div className="border rounded p-3 mb-2">
                   <div className="form-check form-switch consent-switch">
-                    <input className="form-check-input" type="checkbox" id="cookie-necessary" checked disabled />
+                    <input className="form-check-input" type="checkbox" role="switch" id="cookie-necessary" checked disabled />
                     <label className="form-check-label fw-bold" htmlFor="cookie-necessary">
                       {t('cookie.categories.necessary.title')} ({t('cookie.alwaysOn')})
                     </label>
@@ -102,6 +124,7 @@ const CookieConsent = () => {
                       <input
                         className="form-check-input"
                         type="checkbox"
+                        role="switch"
                         id={`cookie-${category}`}
                         checked={Boolean(draft[category]) && !trackingLocked(category)}
                         disabled={trackingLocked(category)}

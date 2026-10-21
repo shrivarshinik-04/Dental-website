@@ -12,7 +12,8 @@ const SECTIONS = [
   ['/admin/rights', 'Rights requests', 'rights'],
   ['/admin/grievances', 'Grievances', 'grievances'],
   ['/admin/nominations', 'Nominations', 'nominations'],
-  ['/admin/breaches', 'Breach incidents', 'breaches']
+  ['/admin/breaches', 'Breach incidents', 'breaches'],
+  ['/admin/analytics', 'Analytics', 'analytics']
 ];
 
 const AdminLayout = ({ title, admin, permissions = [], denied, children }) => {

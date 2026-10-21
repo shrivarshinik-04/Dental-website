@@ -216,3 +216,32 @@ section h2 {
 .consent-switch .form-check-label {
   margin-left: 0.5rem;
 }
+
+/* Cookie banner: below the header's stacking context (.sticky-wrapper, z-index 1000),
+   which contains the mobile offcanvas menu, so the menu always stays on top and usable.
+   Compact and scrollable on small screens. */
+.cookie-banner {
+  z-index: 990;
+}
+
+.cookie-banner-card {
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+@media (max-width: 575.98px) {
+  .cookie-banner-card {
+    max-height: 55vh;
+  }
+}
+
+/* Visible keyboard focus for buttons, links and form controls (WCAG 2.4.7). */
+.btn:focus-visible,
+a:focus-visible,
+.form-check-input:focus-visible,
+.form-control:focus-visible,
+.form-select:focus-visible {
+  outline: 3px solid #003366 !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 0.2rem rgba(179, 229, 252, 0.9) !important;
+}

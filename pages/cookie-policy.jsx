@@ -14,8 +14,7 @@ import ContactBlock from 'components/ContactBlock';
 const CATEGORY_LABEL = {
   necessary: 'Strictly necessary',
   functional: 'Functional',
-  analytics: 'Analytics',
-  marketing: 'Marketing'
+  analytics: 'Analytics'
 };
 
 const CookiePolicy = () => {
@@ -32,13 +31,14 @@ const CookiePolicy = () => {
           <div className="row justify-content-center">
             <div className="col-lg-10 col-xl-9 lato fs-16">
               <p>
-                Cookies are small files a website stores on your device. We use only <strong>first-party</strong> cookies,
-                and no third-party cookies or tracking. Optional cookies stay off until you turn them on, and the site works
+                Cookies are small files a website stores on your device. All our cookies are <strong>first-party</strong>:
+                set by this site and read only by it. Optional cookies stay off until you turn them on, and the site works
                 fully without them.
               </p>
               <p>
-                We do not load any content from other websites (fonts, analytics, maps or videos) when the page opens. If we
-                add an analytics or marketing tool in future, it will be listed here and will only load after you opt in.
+                We do not load any content from other websites (fonts, analytics, maps or videos). If you allow analytics,
+                our own script counts the pages you visit and sends that to our own server only; switching analytics off
+                deletes its cookie and the visits recorded under it.
               </p>
 
               <div className="table-responsive mb-6">

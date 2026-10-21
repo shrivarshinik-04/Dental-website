@@ -19,11 +19,11 @@ import { CATEGORIES } from './consentCategories';
 
 export { CATEGORIES };
 export const CONSENT_COOKIE = 'dpdp_consent';
-// Categories never used for a child (s.9(2)–(3)) or on pages that collect health data.
-const TRACKING_CATEGORIES = ['analytics', 'marketing'];
+// Never active during a child's booking session or on pages that collect health data.
+const TRACKING_CATEGORIES = ['analytics'];
 const MINOR_SESSION_KEY = 'dpdp_minor_session';
 
-const NONE = { functional: false, analytics: false, marketing: false };
+const NONE = { functional: false, analytics: false };
 
 const readConsentCookie = () => {
   const match = document.cookie.split('; ').find((c) => c.startsWith(`${CONSENT_COOKIE}=`));
@@ -43,6 +43,16 @@ const deleteCookie = (name) => {
   });
 };
 
+/**
+ * Asks the server to erase analytics events tied to this browser, then deletes the cookie.
+ * Used whenever the analytics cookie is dropped outside a recorded withdrawal (which the
+ * consent API handles itself), so no events are left orphaned.
+ */
+const eraseAnalyticsThenPurge = () =>
+  fetch('/api/analytics', { method: 'DELETE', credentials: 'same-origin', keepalive: true })
+    .catch(() => {})
+    .finally(() => purgeCategory('analytics'));
+
 /** Deletes every cookie registered for a category in COOKIES (prefix match). */
 export const purgeCategory = (category) => {
   const prefixes = COOKIES.filter((c) => c.category === category && c.match).map((c) => c.match);
@@ -59,7 +69,7 @@ export const purgeCategory = (category) => {
 // called from outside React.
 // ---------------------------------------------------------------------------
 let current = { choices: NONE, minorSession: false, blockedPath: true };
-const loadedScripts = { functional: new Set(), analytics: new Set(), marketing: new Set() };
+const loadedScripts = { functional: new Set(), analytics: new Set() };
 
 const isAllowed = (state, category) => {
   if (!state.choices[category]) return false;
@@ -100,11 +110,14 @@ export const ConsentProvider = ({ children }) => {
   useEffect(() => {
     const saved = readConsentCookie();
     if (saved && saved.v === NOTICE_VERSION && saved.c) {
-      setChoices({ ...NONE, ...saved.c });
+      setChoices({ functional: Boolean(saved.c.functional), analytics: Boolean(saved.c.analytics) });
       setRecord({ version: saved.v, timestamp: saved.ts });
     } else {
       // No choice yet, or the notice changed since: ask again, everything off meanwhile.
-      if (saved) CATEGORIES.forEach(purgeCategory);
+      if (saved) {
+        purgeCategory('functional');
+        eraseAnalyticsThenPurge();
+      }
       setBannerOpen(true);
     }
     try {
@@ -119,6 +132,9 @@ export const ConsentProvider = ({ children }) => {
   // Updated during render (not in an effect) because children's effects, which may
   // call loadScriptIfConsented, run before this component's effects.
   current = { choices, minorSession, blockedPath };
+  // Read by /public/js/analytics.js before every page view, so tracking stops at once on
+  // no-tracking pages, in a child's booking session, or after withdrawal.
+  if (typeof window !== 'undefined') window.__dpdpAnalyticsAllowed = isAllowed(current, 'analytics');
 
   /** Records a choice through /api/consent. Throws if it could not be recorded. */
   const saveChoices = useCallback(
@@ -150,8 +166,15 @@ export const ConsentProvider = ({ children }) => {
     } catch {
       // ignore
     }
-    if (value) TRACKING_CATEGORIES.forEach(purgeCategory);
+    // A child's booking session: erase any analytics recorded in this browser and stop.
+    if (value) eraseAnalyticsThenPurge();
   }, []);
+
+  // Tell the analytics script (if loaded) that a page has rendered, after `current` and
+  // window.__dpdpAnalyticsAllowed reflect the new path.
+  useEffect(() => {
+    window.dispatchEvent(new Event('dpdp:pageview'));
+  }, [pathname]);
 
   const value = useMemo(
     () => ({

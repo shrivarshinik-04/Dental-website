@@ -268,3 +268,21 @@ model BreachIncident {
   detailedReportSentAt        DateTime?
   principalsIntimatedAt       DateTime? // Rule 7(1): "without delay"
 }
+
+// First-party analytics (decision D1), only after the visitor opts in to "Analytics" in the
+// cookie banner. Pseudonymous: a random visitor ID from the `dc_vid` cookie, the path
+// (no query string), the referring site's origin and the time. No IP address or user
+// agent. Erased when the visitor withdraws analytics consent; otherwise kept
+// RETENTION.analyticsEventDays (src/config/compliance.js).
+model AnalyticsEvent {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  visitorId      String
+  path           String
+  referrerOrigin String?
+  timestamp      DateTime @default(now())
+
+  @@index([visitorId])
+  @@index([timestamp])
+}

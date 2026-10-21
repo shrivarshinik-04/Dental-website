@@ -1,10 +1,12 @@
 /**
- * Cookie consent ledger endpoint (collection point B).
- * DPDP Act s.6(1), s.6(4), s.6(10): every choice, including refusal and withdrawal,
- * is appended to ConsentRecord with the notice version shown. Raw IPs are never stored.
+ * Cookie choices (functional and analytics). Every choice, including refusal and
+ * withdrawal, is appended to ConsentRecord with the notice version shown, as evidence of
+ * consent (SPDI Rules 2011 Rule 5; DPDP s.6(10) from about May 2027). Turning analytics off
+ * erases the visitor's analytics events. Raw IPs are never stored.
  */
 import crypto from 'crypto';
 import { NOTICE_VERSION } from 'config/compliance';
+import { eraseAnalytics } from 'lib/analytics';
 import prisma from 'lib/db';
 import { auditMany } from 'lib/audit';
 import { ensureNoticeVersion } from 'lib/noticeContent';
@@ -76,6 +78,10 @@ export default withErrors(async (req, res) => {
       tx
     );
   });
+
+  // Analytics off (refused or withdrawn): erase everything recorded under this browser's
+  // visitor ID and delete the cookie, so withdrawal stops and removes the processing.
+  if (!choices.analytics) await eraseAnalytics(req, res, { ipHash, reference: anonymousId });
 
   const consentCookie = JSON.stringify({ v: NOTICE_VERSION, c: choices, ts: timestamp.toISOString() });
   appendCookie(res, serializeCookie('dpdp_aid', anonymousId, { maxAge: ONE_YEAR }));

@@ -155,6 +155,14 @@ const PrivacyPolicy = () => (
               <ul>
                 <li>Your choices, the notice version you saw, a random ID in a cookie, a one-way hash of your IP address and your browser type. See the <Link href="/cookie-policy">Cookie Policy</Link>.</li>
               </ul>
+              <h3 className="fs-18 merriweather text-title">Analytics (only if you allow it)</h3>
+              <ul>
+                <li>
+                  A random visitor ID in a cookie, the pages of this site you open and when, and the website that sent
+                  you (domain only). Collected by our own script and stored on our server; no IP address or browser
+                  details. Never on the booking, Data Rights or Grievance pages, or during a booking for a child.
+                </li>
+              </ul>
               <h3 className="fs-18 merriweather text-title">Data Rights and Grievance pages</h3>
               <ul className="mb-0">
                 <li>Your reference ID and the phone number or email you verify with; a one-time code (stored only as a hash)</li>
@@ -184,6 +192,12 @@ const PrivacyPolicy = () => (
                     'Remembering your language (optional cookie)',
                     'Language preference',
                     'Your choice in the cookie settings',
+                    'Consent (DPDP s.6)'
+                  ],
+                  [
+                    'Counting page visits to improve the site (optional analytics)',
+                    'Visitor ID, pages, time, referring domain',
+                    'Your choice in the cookie settings; withdrawing erases the data',
                     'Consent (DPDP s.6)'
                   ],
                   [
@@ -252,6 +266,7 @@ const PrivacyPolicy = () => (
                   Visits that become part of your clinical record: kept for the period medical record-keeping rules
                   require (currently set to {years(RETENTION.clinicalRecordDays)} years; to be confirmed).
                 </li>
+                <li>Analytics page visits: {RETENTION.analyticsEventDays} days, or until you withdraw analytics consent.</li>
                 <li>Consent records: {years(RETENTION.consentRecordDays)} years, as proof of what you agreed to.</li>
                 <li>Access logs: at least one year.</li>
                 <li>Requests and complaints: {years(RETENTION.requestRecordDays)} years after they are closed.</li>

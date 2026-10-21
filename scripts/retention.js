@@ -100,6 +100,15 @@ async function main() {
     : (await prisma.otpChallenge.deleteMany({ where: { createdAt: { lt: before(RETENTION.otpDays) } } })).count;
   console.log(`[retention] one-time codes: ${otp}`);
 
+  // 5b. First-party analytics events (only collected with consent; erased on withdrawal by
+  //     /api/consent). Not logs of processing personal data about a patient, so not subject
+  //     to the one-year minimum below.
+  const analyticsWhere = { timestamp: { lt: before(RETENTION.analyticsEventDays) } };
+  const analytics = DRY_RUN
+    ? await prisma.analyticsEvent.count({ where: analyticsWhere })
+    : (await prisma.analyticsEvent.deleteMany({ where: analyticsWhere })).count;
+  console.log(`[retention] analytics events: ${analytics}`);
+
   // 6. Closed rights requests and grievances (kept at least one year).
   const requestCutoff = before(logDays(RETENTION.requestRecordDays));
   const rightsWhere = { respondedAt: { lt: requestCutoff } };
@@ -123,7 +132,7 @@ async function main() {
   const logs = DRY_RUN ? await prisma.auditLog.count({ where: auditWhere }) : (await prisma.auditLog.deleteMany({ where: auditWhere })).count;
   console.log(`[retention] audit log entries: ${logs}`);
 
-  await audit('RETENTION_RUN', 'System', null, JSON.stringify({ principals: toErase.length, otp, rights, grievances, consents, logs }));
+  await audit('RETENTION_RUN', 'System', null, JSON.stringify({ principals: toErase.length, otp, analytics, rights, grievances, consents, logs }));
   console.log('[retention] done');
 }
 

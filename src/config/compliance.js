@@ -132,13 +132,14 @@ const PROCESSORS = [
 // src/locales/*.json changes: visitors are re-prompted and new consents point to
 // the new NoticeVersion row.
 // ---------------------------------------------------------------------------
-const NOTICE_VERSION = '2026-10-21.2';
+const NOTICE_VERSION = '2026-10-21.3';
 const NOTICE_EFFECTIVE_FROM = '2026-10-21';
 
 const POLICY_CHANGELOG = [
   { version: '2026-10-20.1', date: '2026-10-20', change: 'First version.' },
   { version: '2026-10-21.1', date: '2026-10-21', change: 'Removed optional appointment-reminder and marketing consents: no reminder or marketing process exists.' },
-  { version: '2026-10-21.2', date: '2026-10-21', change: 'Notice and policy now describe the law in force (IT Act s.43A, SPDI Rules 2011, CERT-In Directions) and label DPDP Act 2023 provisions as expected from about 13 May 2027; added who receives the data; sample organisation details.' }
+  { version: '2026-10-21.2', date: '2026-10-21', change: 'Notice and policy now describe the law in force (IT Act s.43A, SPDI Rules 2011, CERT-In Directions) and label DPDP Act 2023 provisions as expected from about 13 May 2027; added who receives the data; sample organisation details.' },
+  { version: '2026-10-21.3', date: '2026-10-21', change: 'Added optional first-party analytics (page-visit counting, 90 days, erased on withdrawal); removed the unused marketing cookie category.' }
 ];
 
 // s.5(3) / s.6(3): English plus languages from the Eighth Schedule. Add a locale
@@ -183,7 +184,9 @@ const RETENTION = {
   // Closed rights requests and grievances.
   requestRecordDays: 3 * ONE_YEAR,
   // Expired one-time codes.
-  otpDays: 1
+  otpDays: 1,
+  // First-party analytics events (only collected with analytics consent).
+  analyticsEventDays: 90
 };
 
 const OTP = {
@@ -242,19 +245,27 @@ const COOKIES = [
     purpose: 'Remembers your preferred language between visits.',
     duration: '12 months',
     party: 'First-party'
+  },
+  {
+    name: 'dc_vid',
+    match: 'dc_vid',
+    category: 'analytics',
+    purpose: 'Random visitor ID used by our own analytics script to count page visits. Set only after you allow analytics; deleted, with the visits recorded under it, when you withdraw.',
+    duration: '12 months',
+    party: 'First-party'
   }
-  // Example: if you enable an analytics tool, list its cookies here, e.g.
-  // { name: '_ga, _ga_*', match: '_ga', category: 'analytics', purpose: '...', duration: '...', party: 'Third-party' }
 ];
 
 // Pages where analytics/marketing never load, whatever the visitor chose: pages that
 // collect health or identity data, and the admin area.
 const NO_TRACKING_PATHS = ['/book-appointment', '/data-rights', '/grievance', '/admin'];
 
-// Example analytics integration. Leave `src` empty to load nothing (the default).
-// If you set it, add the domain to the CSP in next.config.js and list its cookies above.
+// First-party analytics script (decision D1). Served from /public, loaded only through
+// loadScriptIfConsented('analytics', …) after opt-in. An external `src` would have its
+// origin added to the CSP automatically; list any cookies it sets in COOKIES.
 const ANALYTICS = {
-  src: ''
+  src: '/js/analytics.js',
+  cookie: 'dc_vid'
 };
 
 module.exports = {

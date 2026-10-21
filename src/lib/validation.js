@@ -87,7 +87,7 @@ export const appointmentSchema = z
 
 export const cookieConsentSchema = z
   .object({
-    choices: z.object({ functional: z.boolean(), analytics: z.boolean(), marketing: z.boolean() }).strict(),
+    choices: z.object({ functional: z.boolean(), analytics: z.boolean() }).strict(),
     language,
     noticeVersion: z.string().max(40)
   })

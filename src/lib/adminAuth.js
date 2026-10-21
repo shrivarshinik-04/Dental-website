@@ -13,9 +13,9 @@
 
 export const ROLES = {
   // Clinic owner: everything.
-  admin: ['appointments', 'consents', 'rights', 'grievances', 'nominations', 'breaches'],
+  admin: ['appointments', 'consents', 'rights', 'grievances', 'nominations', 'breaches', 'analytics'],
   // Grievance Officer / data protection contact.
-  dpo: ['appointments', 'consents', 'rights', 'grievances', 'nominations', 'breaches'],
+  dpo: ['appointments', 'consents', 'rights', 'grievances', 'nominations', 'breaches', 'analytics'],
   // Front desk: only what is needed to schedule visits.
   reception: ['appointments']
 };
