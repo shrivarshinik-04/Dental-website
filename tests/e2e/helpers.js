@@ -2,6 +2,7 @@
  * Shared helpers for the e2e tests. Synthetic data only (names "Test ...", example.com,
  * +91 9000000xxx numbers).
  */
+const crypto = require('crypto');
 const { PrismaClient } = require('@prisma/client');
 const { NOTICE_VERSION } = require('../../src/config/compliance');
 const { TEST_DB } = require('../../playwright.config');
@@ -76,6 +77,28 @@ const bookViaApi = async (request, baseURL, overrides = {}) => {
   return { status: res.status(), referenceId: json.referenceId, body, json };
 };
 
+/**
+ * Decrypts a stored "v1:<iv>:<tag>:<ciphertext>" value (format of src/lib/crypto.js) with the
+ * test server's throwaway key, which playwright.config.js generates per run.
+ */
+const decrypt = (payload) => {
+  if (!payload) return null;
+  const [version, iv, tag, ciphertext] = payload.split(':');
+  if (version !== 'v1') throw new Error('Not an encrypted value');
+  const key = Buffer.from(process.env.E2E_ENCRYPTION_KEY, 'base64');
+  const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(iv, 'base64'));
+  decipher.setAuthTag(Buffer.from(tag, 'base64'));
+  return Buffer.concat([decipher.update(Buffer.from(ciphertext, 'base64')), decipher.final()]).toString('utf8');
+};
+
+/** A fresh API client with its own client IP (rate limits are per client) and a same-origin header. */
+const apiClient = (playwright, baseURL, options = {}) =>
+  playwright.request.newContext({
+    baseURL,
+    ...options,
+    extraHTTPHeaders: { 'X-Forwarded-For': uniqueIp(), Origin: baseURL, ...(options.extraHTTPHeaders || {}) }
+  });
+
 /** Verifies identity via the demo one-time code; the session cookie lands in the context. */
 const verifyViaApi = async (request, baseURL, referenceId, contact) => {
   const sent = await request.post('/api/rights/request-otp', { data: { referenceId, contact }, headers: { Origin: baseURL } });
@@ -84,4 +107,20 @@ const verifyViaApi = async (request, baseURL, referenceId, contact) => {
   return res.status();
 };
 
-module.exports = { ADMIN, DESK, NOTICE_VERSION, uniqueIp, newContext, consentCookie, db, watchConsole, futureDate, testPhone, bookingBody, bookViaApi, verifyViaApi };
+module.exports = {
+  ADMIN,
+  DESK,
+  NOTICE_VERSION,
+  uniqueIp,
+  newContext,
+  consentCookie,
+  db,
+  watchConsole,
+  futureDate,
+  testPhone,
+  bookingBody,
+  bookViaApi,
+  verifyViaApi,
+  decrypt,
+  apiClient
+};
